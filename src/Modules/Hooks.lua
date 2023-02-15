@@ -47,6 +47,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     restoresignal(v)
                 end
             end
+
+            _G.remoteSpyHookedState = false
         end,
         updateCallStackLimit = function(data: number)
             callStackLimit = data
@@ -350,47 +352,51 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         local remoteID: string = get_debug_id(remote)
         local cloneRemote: RemoteFunction | BindableFunction = cloneref(remote)
 
-        table_insert(callbackHooks, setmetatable({
-            Instance = cloneRemote,
-            CallbackMethod = callbackMethod,
-            OriginalFunction = newCallback
-        }, {__mode = "v"}))
+        if not callbackHooks[remoteID] then
+            callbackHooks[remoteID] = setmetatable({
+                Instance = cloneRemote,
+                CallbackMethod = callbackMethod,
+                OriginalFunction = newCallback
+            }, {__mode = "v"})
 
-        cloneRemote[callbackMethod] = function(...)
-            if not spyPaused then
-                if not invoke(cmdChannel, "checkIgnored", remoteID, true) then
-                    local argSize: number = select("#", ...)
-                    local data = {...}
-                    local desanitizePaths = partiallySanitizeData(data)
+            cloneRemote[callbackMethod] = function(...)
+                if not spyPaused then
+                    if not oldHooks.Invoke(cmdChannel, "checkIgnored", remoteID, true) then
+                        local argSize: number = select("#", ...)
+                        local data = {...}
+                        local desanitizePaths = partiallySanitizeData(data)
 
-                    callCount += 1
-                    local returnKey: string = channelKey .. "|" .. callCount
+                        callCount += 1
+                        local returnKey: string = channelKey .. "|" .. callCount
 
-                    local scr: Instance = getcallingscript()
-                    fire(dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
-                    fire(argChannel, unpack(data, 1, argSize))
-                    desanitizeData(desanitizePaths)
-                    
-                    if invoke(cmdChannel, "checkBlocked", remoteID) then
-                        return
+                        local scr: Instance = getcallingscript()
+                        oldHooks.Fire(dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
+                        oldHooks.Fire(argChannel, unpack(data, 1, argSize))
+                        desanitizeData(desanitizePaths)
+                        
+                        if oldHooks.Invoke(cmdChannel, "checkBlocked", remoteID) then
+                            return
+                        else
+                            local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...))
+                            local desanitizeReturnPaths = partiallySanitizeData(returnData)
+
+                            oldHooks.Fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                            oldHooks.Fire(argChannel, unpack(returnData, 1, returnDataSize))
+                            desanitizeData(desanitizeReturnPaths)
+
+                            return unpack(returnData, 1, returnDataSize)
+                        end
                     else
-                        local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackFunc)(...))
-                        local desanitizeReturnPaths = partiallySanitizeData(returnData)
-
-                        fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
-                        fire(argChannel, unpack(returnData, 1, returnDataSize))
-                        desanitizeData(desanitizeReturnPaths)
-
-                        return unpack(returnData, 1, returnDataSize)
-                    end
-                else
-                    if invoke(cmdChannel, "checkBlocked", remoteID, true) then
-                        return
+                        if oldHooks.Invoke(cmdChannel, "checkBlocked", remoteID, true) then
+                            return
+                        end
                     end
                 end
-            end
 
-            return coroutine_wrap(callbackFunc)(...)
+                return coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...)
+            end
+        else
+            callbackHooks[remoteID].OriginalFunction = newCallback
         end
 
         return true

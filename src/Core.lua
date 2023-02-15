@@ -231,6 +231,7 @@ do -- initialize
 
     _G.destroySpy = function()
         backend.EventPipe:Fire("selfDestruct")
+        _G.destroySpy = nil
     end
 
     -- block event, unnecessary if it gets the list passed directly
