@@ -522,6 +522,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 AllFilter.new({
                     InstanceTypeFilter.new(1, "BindableFunction"),
                     NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
+                    NotFilter.new(ArgumentFilter.new(1, callbackReturnSpoof)),
 
                     AnyFilter.new({
                         ArgumentFilter.new(2, "OnInvoke"),
