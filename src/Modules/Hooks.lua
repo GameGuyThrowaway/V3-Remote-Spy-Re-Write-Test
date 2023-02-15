@@ -63,9 +63,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     connection = dataChannel.Event:Connect(function(commandName: string, data: any)
         local commandFunction = commands[commandName]
 
-        assert(commandFunction, "INVALID COMMAND: ", commandName)
-
-        commandFunction(data)
+        if commandFunction then
+            commandFunction(data)
+        end
     end)
 
     local function desanitizeData(deSanitizePaths) -- this function returns the orginal dangerous values, ensuring the creator doesn't know what happened
