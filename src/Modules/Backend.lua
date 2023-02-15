@@ -35,14 +35,12 @@ cmdChannel.OnInvoke = function(callType: string, ...)
 end
 
 dataCon = dataChannel.Event:Connect(function(callType: string, ...)
-    warn(callType, "recv")
     if callType == "sendMetadata" then
         metadata = {...}
     end
 end)
 
 argCon = argChannel.Event:Connect(function(...)
-    warn("args recv")
     assert(metadata, "FATAL ERROR, REPORT IMMEDIATELY")
     local callType = metadata[1]
 

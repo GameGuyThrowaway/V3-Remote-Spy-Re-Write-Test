@@ -63,7 +63,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     connection = dataChannel.Event:Connect(function(commandName: string, data: any)
         local commandFunction = commands[commandName]
 
-        if commandFunction then
+        if commandFunction then -- same channel as used in Backend, no overlapping commands, so this works as a check
             commandFunction(data)
         end
     end)
@@ -630,8 +630,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                                 return
                             end
                         end
-
-                        task_spawn(fire, argChannel, unpack(data, 1, argSize))
                     else
                         desanitizeData(desanitizePaths) -- doesn't get blocked if it's an illegal (impossible) call
                     end
