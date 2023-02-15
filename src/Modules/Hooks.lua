@@ -15,6 +15,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local trampoline_call = syn.trampoline_call
 
     local spyPaused: boolean, callStackLimit: number, channelKey: number, cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = ...
+    local callbackReturnSpoof: BindableFunction = Instance.new("BindableFunction") -- Long story, just ask me if you want to find out why this is here - GameGuy#5286
 
     local callCount: number = 0
     local oldHooks, callbackHooks, signalHooks = {}, {}, {}
@@ -327,9 +328,10 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return oldFunction
     end
 
-
     local fire = argChannel.Fire -- task.spawn'ed cause of OTH limitations
     local invoke = cmdChannel.Invoke -- coroutine.wrap'ed cause of OTH limitations
+
+    -- neither callback nor signal hooks need to use task.spawn/coroutine.wrap for bindable calls, as they aren't coming from an OTH thread
 
     local function addCallbackHook(remote: RemoteFunction | BindableFunction, callbackMethod: string, newCallback): boolean
         set_thread_identity(3)
@@ -355,7 +357,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         local callbackProxy = function(...)
             if not spyPaused then
-                if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
+                if not invoke(cmdChannel, "checkIgnored", remoteID, true) then
                     local argSize: number = select("#", ...)
                     local data = {...}
                     local desanitizePaths = partiallySanitizeData(data)
@@ -366,30 +368,32 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     local th: thread = coroutine_running()
                     local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                    task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
-                    task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                    fire(dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
+                    fire(argChannel, unpack(data, 1, argSize))
                     desanitizeData(desanitizePaths)
 
-                    if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
+                    if invoke(cmdChannel, "checkBlocked", remoteID) then
                         return
                     else
-                        local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackFunc)(...))
+                        callbackReturnSpoof.OnInvoke = callbackFunc
+                        local returnData, returnDataSize = processReturnValue(invoke(callbackReturnSpoof, ...))
                         local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
-                        task_spawn(fire, dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
-                        task_spawn(fire, argChannel, unpack(returnData, 1, returnDataSize))
+                        fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                        fire(argChannel, unpack(returnData, 1, returnDataSize))
                         desanitizeData(desanitizeReturnPaths)
 
                         return unpack(returnData, 1, returnDataSize)
                     end
                 else
-                    if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
+                    if invoke(cmdChannel, "checkBlocked", remoteID, true) then
                         return
                     end
                 end
             end
 
-            return coroutine_wrap(callbackFunc)(...)
+            callbackReturnSpoof.OnInvoke = callbackFunc
+            return invoke(callbackReturnSpoof, ...)
         end
 
         callbackHooks[remoteID] = setmetatable({
@@ -423,7 +427,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         conCount = #getconnections(signal)-1
                     end
 
-                    if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
+                    if not invoke(cmdChannel, "checkIgnored", remoteID, true) then
                         local scr = issynapsethread(coroutine_running()) and "Synapse" or getcallingscript()
                         if typeof(scr) == "Instance" then scr = cloneref(scr) end
 
@@ -440,8 +444,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             local data = {...}
                             local desanitizePaths = partiallySanitizeData(data)
 
-                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteConnection", cloneRemote, remoteID, scriptCache)
-                            task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                            fire(dataChannel, "sendMetadata", "onRemoteConnection", cloneRemote, remoteID, scriptCache)
+                            fire(argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
                             table_clear(scriptCache)
                             conCount = 0
@@ -454,7 +458,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
 
-                if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
+                if invoke(cmdChannel, "checkBlocked", remoteID, true) then
                     return false
                 end
 
@@ -555,7 +559,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         BindableFunction = AllFilter.new({
             InstanceTypeFilter.new(1, "BindableFunction"),
-            NotFilter.new(ArgumentFilter.new(1, cmdChannel))
+            NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
+            NotFilter.new(ArgumentFilter.new(1, callbackReturnSpoof))
         }),
 
         RemoteEvent = InstanceTypeFilter.new(1, "RemoteEvent"),
