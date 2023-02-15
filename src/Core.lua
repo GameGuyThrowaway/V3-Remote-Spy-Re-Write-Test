@@ -184,7 +184,7 @@ end
 
 local function updateReturnValue(returnValueKey: string, returnValue, returnCount: number)
     local returnEntry = returnValuePointerList[returnValueKey]
-    local callEntry = returnEntry.call
+    local callEntry = returnEntry.Call
     local remoteID = returnEntry.RemoteID
 
     callEntry.ReturnValue = returnValue
