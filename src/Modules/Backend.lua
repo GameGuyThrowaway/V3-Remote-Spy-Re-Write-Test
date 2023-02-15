@@ -11,6 +11,7 @@ local task_spawn = task.spawn
 local callIgnoreList, callBlockList, callbackIgnoreList, callbackBlockList, callStackLimit: number, paused: boolean, hookCode: string -- initialize variables, later to be used to point to the real values
 local metadata -- this is used to store metadata while the args are still being sent, due to a Bindable limitation, I need to split metadata from args
 local EventPipe
+local actorCon: SynConnection, dataCon: RBXScriptConnection, argCon: RBXScriptConnection
 
 -- I could swap out this mutli channel system for a single SynGlobalSignal if I rewrote to use an identifier (need to Fire back instead of returning data)
 local cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = Instance.new("BindableFunction"), Instance.new("BindableEvent"), Instance.new("BindableEvent")
@@ -67,7 +68,7 @@ function backendModule.initiateModule(CallBlockList, CallIgnoreList, CallbackBlo
     callStackLimit = CallStackLimit
     hookCode = HookCode
 
-    syn.on_actor_state_created:Connect(function(actor: Actor)
+    connection = syn.on_actor_state_created:Connect(function(actor: Actor)
         handleState(getluastate(actor))
     end)
 
@@ -85,8 +86,20 @@ function backendModule.setupEvents(TaskSignalLibrary)
         "onRemoteConnection",
         "onReturnValueUpdated",
         "spyPaused",
-        "updateCallStackLimit"
+        "updateCallStackLimit",
+        "selfDestruct"
     })
+
+    EventPipe:ListenToEvent("selfDestruct", function()
+        actorCon:Disconnect()
+        argCon:Disconnect()
+        dataCon:Disconnect()
+        dataChannel:Fire("selfDestruct")
+
+        argChannel:Destroy()
+        dataChannel:Destroy()
+        cmdChannel:Destroy()
+    end)
 
     EventPipe:ListenToEvent("updateCallStackLimit", function(newLimit: number)
         callStackLimit = newLimit
