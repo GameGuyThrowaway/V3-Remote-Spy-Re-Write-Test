@@ -361,7 +361,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
             cloneRemote[callbackMethod] = function(...)
                 if not spyPaused then
-                    if not oldHooks.coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
+                    if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
                         local argSize: number = select("#", ...)
                         local data = {...}
                         local desanitizePaths = partiallySanitizeData(data)
@@ -374,7 +374,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
 
-                        if oldHooks.coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
+                        if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                             return
                         else
                             local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...))
@@ -387,7 +387,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             return unpack(returnData, 1, returnDataSize)
                         end
                     else
-                        if oldHooks.coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
+                        if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
                             return
                         end
                     end
@@ -587,15 +587,21 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             local argSize: number = select("#", ...)
             warn(argSize)
             if argSize < 7996 then
+                warn("a")
                 local cloneRemote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
+                warn("b")
 
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
+                    warn("c")
                     local data = {...}
                     local success: boolean, desanitizePaths = sanitizeData(data, -1)
+                    warn("d")
 
                     if success then
+                        warn("e")
                         local className: string = classDict[getnamecallmethod()]
+                        warn("f")
 
                         if (className == "RemoteFunction" or className == "BindableFunction") then
                             local scr: Instance = getcallingscript()
@@ -620,16 +626,22 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                                 return unpack(returnData, 1, returnDataSize)
                             end
                         else
+                            warn("g")
                             local scr: Instance = getcallingscript()
+                            warn("h")
                             task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                            warn("i")
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                            warn("j")
 
                             if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                                 return
                             end
                         end
 
+                        warn("k")
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                        warn("l")
                     else
                         desanitizeData(desanitizePaths) -- doesn't get blocked if it's an illegal (impossible) call
                     end
