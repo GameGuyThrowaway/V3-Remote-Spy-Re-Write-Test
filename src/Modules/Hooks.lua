@@ -354,10 +354,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         local cloneRemote: RemoteFunction | BindableFunction = cloneref(remote)
 
         local callbackProxy = function(...)
-            warn('proxy called')
             if not spyPaused then
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
-                    warn("not ignored")
                     local argSize: number = select("#", ...)
                     local data = {...}
                     local desanitizePaths = partiallySanitizeData(data)
@@ -368,7 +366,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     local th: thread = coroutine_running()
                     local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                    warn('new callback')
                     task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
                     task_spawn(fire, argChannel, unpack(data, 1, argSize))
                     desanitizeData(desanitizePaths)
@@ -402,10 +399,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             OriginalFunction = callbackFunc
         }, {__mode = "v"})
 
-        oldHooks.NewIndex(remote, callbackMethod, callbackProxy) -- set the callback to the proxy
-        warn(getcallbackmember(remote, callbackMethod), getcallbackmember(remote, callbackMethod) == callbackProxy)
-
-        return true
+        return callbackProxy
     end
 
     local function addSignalHook(remote: RemoteEvent | BindableEvent, connectionMethod: string, signal: RBXScriptSignal)
@@ -571,11 +565,12 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldNewIndex
     oldNewIndex = newHookMetamethod(game, "__newindex", newcclosure(function(remote: RemoteFunction | BindableFunction, idx: string, newidx)
-        if not addCallbackHook(cloneref(remote), idx, newidx) then
-            warn("failed, returning")
+        local callbackProxy = addCallbackHook(cloneref(remote), idx, newidx)
+        if not callbackProxy then
             return oldNewIndex(remote, idx, newidx)
         end
-        warn("skipped", getcallbackmember(remote, idx))
+
+        return oldNewIndex(remote, idx, callbackProxy)
     end), filters.NewIndex)
     oldHooks.NewIndex = oldNewIndex
 
