@@ -157,7 +157,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
             local valueType: string = typeof(v)
             if valueType == "table" then -- recursive checks
-                if sanitizeData(v, depth+1, deSanitizePaths) ~= false then -- sanitize, but check for stack overflow/cyclic
+                if sanitizeData(v, offThread, depth+1, deSanitizePaths) ~= false then -- sanitize, but check for stack overflow/cyclic
                     if not first then
                         return false
                     else
