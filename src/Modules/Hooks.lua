@@ -364,8 +364,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     local returnKey: string = channelKey .. "|" .. callCount
 
                     local scr: Instance = getcallingscript()
-                    dataChannel:Fire("sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
-                    argChannel:Fire(unpack(data, 1, argSize))
+                    fire(dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
+                    fire(argChannel, unpack(data, 1, argSize))
                     desanitizeData(desanitizePaths)
                     
                     if cmdChannel:Invoke("checkBlocked", remoteID) then
@@ -374,8 +374,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackFunc)(...))
                         local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
-                        dataChannel:Fire("sendMetadata", "onReturnValueUpdated", returnKey)
-                        argChannel:Fire(unpack(returnData, 1, returnDataSize))
+                        fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                        fire(argChannel, unpack(returnData, 1, returnDataSize))
                         desanitizeData(desanitizeReturnPaths)
 
                         return unpack(returnData, 1, returnDataSize)
@@ -431,8 +431,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             local data = {...}
                             local desanitizePaths = partiallySanitizeData(data)
 
-                            dataChannel:Fire("sendMetadata", "onRemoteConnection", cloneRemote, remoteID, scriptCache)
-                            argChannel:Fire(unpack(data, 1, argSize))
+                            fire(dataChannel, "sendMetadata", "onRemoteConnection", cloneRemote, remoteID, scriptCache)
+                            fire(argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
                             table_clear(scriptCache)
                             conCount = 0
@@ -539,6 +539,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         })
     }
 
+    local fire = argChannel.Fire
 
     local oldNewIndex
     oldNewIndex = newHookMetamethod(game, "__newindex", newcclosure(function(remote: RemoteFunction | BindableFunction, idx: string, newidx)
@@ -578,8 +579,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             callCount += 1
                             local returnKey: string = channelKey .. "|" .. callCount
 
-                            dataChannel:Fire("sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                            argChannel:Fire(unpack(data, 1, argSize))
+                            fire(dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                            fire(argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
                             
                             if cmdChannel:Invoke("checkBlocked", remoteID) then
@@ -588,23 +589,23 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                                 local returnData, returnDataSize = processReturnValue(oldNamecall(remote, ...))
                                 local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
-                                dataChannel:Fire("sendMetadata", "onReturnValueUpdated", returnKey)
-                                argChannel:Fire(unpack(returnData, 1, returnDataSize))
+                                fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                                fire(argChannel, unpack(returnData, 1, returnDataSize))
                                 desanitizeData(desanitizeReturnPaths)
 
                                 return unpack(returnData, 1, returnDataSize)
                             end
                         else
                             local scr: Instance = getcallingscript()
-                            dataChannel:Fire("sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                            argChannel:Fire(unpack(data, 1, argSize))
+                            fire(dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                            fire(argChannel, unpack(data, 1, argSize))
 
                             if cmdChannel:Invoke("checkBlocked", remoteID) then
                                 return
                             end
                         end
 
-                        argChannel:Fire(unpack(data, 1, argSize))
+                        fire(argChannel, unpack(data, 1, argSize))
                     else
                         desanitizeData(desanitizePaths) -- doesn't get blocked if it's an illegal (impossible) call
                     end
@@ -635,8 +636,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                     if success then
                         local scr: Instance = getcallingscript()
-                        dataChannel:Fire("sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                        argChannel:Fire(unpack(data, 1, argSize))
+                        fire(dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        fire(argChannel, unpack(data, 1, argSize))
                     end
 
                     desanitizeData(desanitizePaths)
@@ -666,8 +667,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                     if success then
                         local scr: Instance = getcallingscript()
-                        dataChannel:Fire("sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                        argChannel:Fire(unpack(data, 1, argSize))
+                        fire(dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        fire(argChannel, unpack(data, 1, argSize))
                     end
 
                     desanitizeData(desanitizePaths)
@@ -701,8 +702,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local returnKey: string = channelKey.."|"..callCount
                         
                         local scr: Instance = getcallingscript()
-                        dataChannel:Fire("sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                        argChannel:Fire(unpack(data, 1, argSize))
+                        fire(dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        fire(argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
                         
                         if cmdChannel:Invoke("checkBlocked", remoteID) then
@@ -711,8 +712,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             local returnData, returnDataSize = processReturnValue(oldInvokeServer(remote, ...))
                             local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
-                            dataChannel:Fire("sendMetadata", "onReturnValueUpdated", returnKey)
-                            argChannel:Fire(unpack(returnData, 1, returnDataSize))
+                            fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                            fire(argChannel, unpack(returnData, 1, returnDataSize))
                             desanitizeData(desanitizeReturnPaths)
 
                             return unpack(returnData, 1, returnDataSize)
@@ -750,8 +751,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local returnKey: string = channelKey.."|"..callCount
 
                         local scr: Instance = getcallingscript()
-                        dataChannel:Fire("sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                        argChannel:Fire(unpack(data, 1, argSize))
+                        fire(dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        fire(argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
                         
                         if cmdChannel:Invoke("checkBlocked", remoteID) then
@@ -760,8 +761,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             local returnData, returnDataSize = processReturnValue(oldInvoke(remote, ...))
                             local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
-                            dataChannel:Fire("sendMetadata", "onReturnValueUpdated", returnKey)
-                            argChannel:Fire(unpack(returnData, 1, returnDataSize))
+                            fire(dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                            fire(argChannel, unpack(returnData, 1, returnDataSize))
                             desanitizeData(desanitizeReturnPaths)
 
                             return unpack(returnData, 1, returnDataSize)
