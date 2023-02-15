@@ -91,12 +91,12 @@ local makeUserdataConstructor = {
         local dockState: string = str_sub(arguments[1], 18, -1)
         local initialEnabled: boolean = tonumber(str_sub(arguments[2], 16, -1)) ~= 0
         local initialShouldOverride: boolean = tonumber(str_sub(arguments[3], 38, -1)) ~= 0
-        local floatX: number = tonumber(str_sub(arguments[4], 15, -1)) 
+        local floatX: number = tonumber(str_sub(arguments[4], 15, -1))
         local floatY: number = tonumber(str_sub(arguments[5], 15, -1))
         local minWidth: number = tonumber(str_sub(arguments[6], 10, -1))
         local minHeight: number = tonumber(str_sub(arguments[7], 11, -1))
         -- can't read the properties so i have to tostring first :(
-            
+
         return str_format("DockWidgetPluginGuiInfo.new(%s, %s, %s, %s, %s, %s, %s)", "Enum.InitialDockState." .. dockState, tostring(initialEnabled), tostring(initialShouldOverride), tostring(floatX), tostring(floatY), tostring(minWidth), tostring(minHeight))
     end,
     Enum = function(original: Enum): string
@@ -322,7 +322,7 @@ tableToString = function(data: any, format: boolean, root: any, indents: number)
                 end
             end
         end
-        
+
         if format then
             return #head > 2 and str_format("%s\n%s", str_sub(head, 1, -3), str_rep('\t', indents - 1) .. '}') or "{}"
         else
@@ -375,7 +375,7 @@ local function customToString(data: any): string
     end
 end
 
-local function getInstancePath(instance: Instance): string
+getInstancePath = function(instance: Instance): string
     local old = get_thread_identity()
     set_thread_identity(3)
     local id = get_debug_id(instance) -- cloneref moment
@@ -498,7 +498,7 @@ function PseudocodeGenerator.generateCode(remote: Instance, callback: boolean, c
                 for i = 1, retValCount do
                     pseudocode ..= ("returnValue" .. i .. ", ")
                 end
-                pseudocode = str_sub(pseudocode, 1, -3) .. " = " 
+                pseudocode = str_sub(pseudocode, 1, -3) .. " = "
                 if callback then
                     pseudocode ..= ("getcallbackmember(" .. pathStr .. ", \"" .. remData.Namecall .. "\")()")
                 else
@@ -537,7 +537,7 @@ function PseudocodeGenerator.generateCode(remote: Instance, callback: boolean, c
                 table_insert(argCalls, { primTyp, "nil, ", "" })
                 continue
             end
-            
+
             local varPrefix = ""
             if primTyp ~= "table" and Settings.PseudocodeLuaUTypes then
                 varPrefix = "local " .. varName .. ": ".. tempTyp .." = "
@@ -583,7 +583,7 @@ function PseudocodeGenerator.generateCode(remote: Instance, callback: boolean, c
             end
         end
 
-        if Settings.PsuedocodeHiddenNils and InlineSettings.HiddenNils then 
+        if Settings.PsuedocodeHiddenNils and InlineSettings.HiddenNils then
             for i = 1, nilCount do
                 pseudocode ..= "local hiddenNil" .. tostring(i) .. " = nil\n"
                 atLeastOneInline = true
@@ -634,7 +634,7 @@ function PseudocodeGenerator.generateCode(remote: Instance, callback: boolean, c
                 for i = 1, retValCount do
                     pseudocode ..= ("returnValue" .. i .. ", ")
                 end
-                pseudocode = str_sub(pseudocode, 1, -3) .. " = " 
+                pseudocode = str_sub(pseudocode, 1, -3) .. " = "
                 if callback then
                     pseudocode ..= ("getcallbackmember(" .. pathStr .. ", \"" .. remData.Namecall .. "\")(")
                 else
@@ -748,7 +748,7 @@ function PseudocodeGenerator.generateCallStack(callStack): string
 
         callStackString = str_sub(callStackString, 1, -2) .. "\n\t},"
     end
-    
+
     return (str_sub(callStackString, 1, -2) .. "\n}") -- get rid of the last "," and replace with \n}
 end
 
@@ -762,10 +762,10 @@ function PseudocodeGenerator.generateConnectedScriptsList(connectedScripts): str
     for i,v in connectedScripts do
         scriptListString ..= str_format("\n\t[%s] = {\n\t\tInstance = %s,\n\t\tAmount = %s\n\t},", tostring(i), v.Script and getInstancePath(v.Script) or "nil", tostring(v.Amount))
     end
-    
+
     scriptListString = str_sub(scriptListString, 1, -2) -- if there are no connections, this will break everything
     scriptListString ..= "\n}"
-    
+
     return scriptListString
 end
 
