@@ -6,20 +6,20 @@ local defaultSettings = {
     -- core options
     FireServer = true,
     InvokeServer = true,
-    Fire = false,
-    Invoke = false,
+    Fire = true,
+    Invoke = true,
 
-    OnClientEvent = false,
-    OnClientInvoke = false,
-    OnEvent = false,
-    OnInvoke = false,
+    OnClientEvent = true,
+    OnClientInvoke = true,
+    OnEvent = true,
+    OnInvoke = true,
 
     Callbacks = true,
     Bindables = true,
     Remotes = true,
 
     CallStackSizeLimit = 10,
-    LogPausedTypes = true,
+    LogPausedTypes = false,
     CacheLimit = true,
     MaxCallAmount = 1000,
     Paused = false,
