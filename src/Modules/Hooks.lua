@@ -11,6 +11,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local set_thread_identity = syn.set_thread_identity
     local oth_get_original_thread = syn.oth.get_original_thread
     local oth_hook = syn.oth.hook
+    local oth_unhook = syn.oth.unhook
     local trampoline_call = syn.trampoline_call
 
     local spyPaused: boolean, callStackLimit: number, channelKey: number, cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = ...
@@ -25,16 +26,15 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             connection:Disconnect()
             -- need to unhook all signals/functions (callbacks included) here
 
-            local unHook = syn.oth.unhook
-            unHook(Instance.new("RemoteEvent").FireServer, oldHooks.FireServer)
-            unHook(Instance.new("RemoteFunction").InvokeServer, oldHooks.InvokeServer)
-            unHook(Instance.new("BindableEvent").Fire, oldHooks.Fire)
-            unHook(Instance.new("BindableFunction").Invoke, oldHooks.Invoke)
+            oth_unhook(Instance.new("RemoteEvent").FireServer, oldHooks.FireServer)
+            oth_unhook(Instance.new("RemoteFunction").InvokeServer, oldHooks.InvokeServer)
+            oth_unhook(Instance.new("BindableEvent").Fire, oldHooks.Fire)
+            oth_unhook(Instance.new("BindableFunction").Invoke, oldHooks.Invoke)
 
             local mt = getrawmetatable(game)
-            unHook(mt.__namecall, oldHooks.Namecall)
-            unHook(mt.__index, oldHooks.Index)
-            unHook(mt.__newindex, oldHooks.NewIndex)
+            oth_unhook(mt.__namecall, oldHooks.Namecall)
+            oth_unhook(mt.__index, oldHooks.Index)
+            oth_unhook(mt.__newindex, oldHooks.NewIndex)
 
             for _,v in callbackHooks do
                 if v.Instance and v.OriginalFunction then -- might've gced by now
@@ -628,7 +628,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             local th: thread = oth_get_original_thread()
                             local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(th, 0))
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
 
                             if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
@@ -667,7 +667,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local th: thread = oth_get_original_thread()
                         local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(th, 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                     end
 
@@ -700,7 +700,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local th: thread = oth_get_original_thread()
                         local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(th, 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                     end
 
@@ -713,7 +713,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             end
         end
 
-        return oldFire(fire, remote, ...)
+        return oldFire(remote, ...)
     end), filters.BindableEvent)
     oldHooks.Fire = oldFire
 
@@ -737,7 +737,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local th: thread = oth_get_original_thread()
                         local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(th, 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
 
@@ -788,14 +788,14 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local th: thread = oth_get_original_thread()
                         local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(th, 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
 
                         if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                             return
                         else
-                            local returnData, returnDataSize = processReturnValue(oldcoroutine_wrap(invoke)(remote, ...))
+                            local returnData, returnDataSize = processReturnValue(coroutine_wrap(invoke)(remote, ...))
                             local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
                             task_spawn(fire, dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
@@ -815,7 +815,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             end
         end
 
-        return oldcoroutine_wrap(invoke)(remote, ...)
+        return oldInvoke(remote, ...)
     end), filters.BindableFunction)
     oldHooks.Invoke = oldInvoke
 end
