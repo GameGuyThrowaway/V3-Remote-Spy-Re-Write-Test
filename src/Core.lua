@@ -2,14 +2,8 @@
     -- I suggest turning on line wrapping to read my massive single line comments
     -- I should probably add more sanity checks for basic stuff, but I figure most of this stuff should be impossible to break in real world conditions, so the only way it would fail the sanity check is if I wrote the code wrong, in which case might as well error
 
-    -- Incoming data should be completely safe because it was passed through a bindable (SynGlobalSignal), and has cyclic + stack overflow + indices fix + thread check
-    -- Do I use a SynGlobalSignal or a series of bindables?  Bindables can return, but need to be checked to ensure they aren't being self logged (use a hashmap)
-    -- The only way currently to use SynGlobalSignal is through getgamestate().Event, but that will likely want to be used by other scripts, meaning I shouldn't use it
-
     -- Need to make interface compatible
-    -- Rewrite Backend.lua to be compatible
-    -- Rewrite Hooks.lua to be compatible
-    -- Add Paused support to the backend
+    -- Add support for pausing types in the backend?  It'd help with performance.
     -- Add an actual interface
 ]]
 

@@ -38,8 +38,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             oth_unhook(mt.__newindex, oldHooks.NewIndex)
 
             for _,v in callbackHooks do
-                if getcallbackmember(v.Instance, v.CallbackName) == v.ProxyFunction then -- check if our hook is still applied
-                    v.Instance[v.CallbackName] = v.OriginalFunction -- if it is, get rid of it
+                if getcallbackmember(v.Instance, v.CallbackMethod) == v.ProxyFunction then -- check if our hook is still applied
+                    v.Instance[v.CallbackMethod] = v.OriginalFunction -- if it is, get rid of it
                 end
             end
 
