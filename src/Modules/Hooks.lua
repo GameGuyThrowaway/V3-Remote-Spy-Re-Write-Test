@@ -549,13 +549,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         BindableEvent = AllFilter.new({
             InstanceTypeFilter.new(1, "BindableEvent"), 
-            NotFilter.new(ArgumentFilter.new(argChannel)), 
-            NotFilter.new(ArgumentFilter.new(dataChannel))
+            NotFilter.new(ArgumentFilter.new(1, argChannel)), 
+            NotFilter.new(ArgumentFilter.new(1, dataChannel))
         }),
 
         BindableFunction = AllFilter.new({
             InstanceTypeFilter.new(1, "BindableFunction"), 
-            NotFilter.new(ArgumentFilter.new(cmdChannel))
+            NotFilter.new(ArgumentFilter.new(1, cmdChannel))
         }),
 
         RemoteEvent = InstanceTypeFilter.new(1, "RemoteEvent"),
