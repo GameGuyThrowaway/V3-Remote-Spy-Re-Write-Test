@@ -41,6 +41,7 @@ local callbackList = {} -- list of callbacks and connections
 
 _G.cL = callList
 _G.cbL = callbackList
+_G.psG = pseudocodeGenerator
 
 local returnValuePointerList = {} -- hashmap used that points a update key to a table
 
