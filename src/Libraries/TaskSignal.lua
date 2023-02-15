@@ -1,6 +1,6 @@
 local TaskSignal = {}
 
-TaskSignal._class = 'TaskSgianl'
+TaskSignal._class = 'TaskSignal'
 TaskSignal.__index = TaskSignal
 
 function TaskSignal:ListenToEvent(eventName: string, callback: any)

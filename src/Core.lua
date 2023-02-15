@@ -229,6 +229,10 @@ do -- initialize
     interface.setupEvents(taskSignalLibrary)
     backend.setupEvents(taskSignalLibrary)
 
+    _G.destroySpy = function()
+        backend.EventPipe:Fire("selfDestruct")
+    end
+
     -- block event, unnecessary if it gets the list passed directly
     interface.EventPipe:ListenToEvent('onRemoteBlocked', function(remoteID: string, callback: boolean, status: boolean) 
         local list = callback and callbackBlockList or callBlockList
