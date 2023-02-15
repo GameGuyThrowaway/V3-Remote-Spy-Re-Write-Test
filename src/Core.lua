@@ -361,11 +361,8 @@ do -- initialize
     backend.EventPipe:ListenToEvent('onRemoteCall', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callingScript: Instance, callStack)
         if not Settings.Paused then
             local class = remote.ClassName
-            warn("a", Settings[dataList[class].Namecall], Settings.LogPausedTypes, Settings[typeList[class]])
             if (Settings[dataList[class].Namecall] or Settings.LogPausedTypes) and Settings[typeList[class]] then
-                warn("b")
                 local log = logCall(remote, remoteID, returnValueKey, callingScript, callStack, args, argCount)
-                warn("c")
                 interface.EventPipe:Fire('onNewCall', remoteID, log)
             end
         end
