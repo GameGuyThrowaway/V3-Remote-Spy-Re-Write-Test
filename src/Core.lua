@@ -382,5 +382,5 @@ do -- initialize
     settingsModule.loadSettings()
     interface.initiateModule(callList, callBlockList, callIgnoreList, callbackList, callbackBlockList, callbackIgnoreList, Settings)
     pseudocodeGenerator.initiateModule(Settings)
-    backend.initiateModule(callBlockList, callIgnoreList, callbackBlockList, callbackIgnoreList, Settings.CallStackSizeLimit, hookCode)
+    backend.initiateModule(callBlockList, callIgnoreList, callbackBlockList, callbackIgnoreList, Settings.Paused, Settings.CallStackSizeLimit, hookCode)
 end
