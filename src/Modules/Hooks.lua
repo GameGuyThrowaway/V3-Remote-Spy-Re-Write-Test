@@ -141,6 +141,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local thread, stack -- used in sanitizeData, globalized so it stays during recursive calls
 
     local function sanitizeData(data, offThread: boolean, depth: number, deSanitizePaths) -- this replaces unsafe indices, checks for cyclics, or stack overflow attemps, and clonerefs all instances
+        depth = depth or 0
         if depth > 298 then return false end
 
         local deadCall: boolean = false
@@ -457,7 +458,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
 
-                if cmdChannel:task_spawn(fire, "checkBlocked", remoteID, true) then
+                if task_spawn(fire, "checkBlocked", remoteID, true) then
                     return false
                 end
 
@@ -585,26 +586,18 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
-        warn(pcall(function(...)
         if not spyPaused then
             local argSize: number = select("#", ...)
-            warn(argSize)
             if argSize < 7996 then
-                warn("a")
                 local cloneRemote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
-                warn("b")
 
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
-                    warn("c")
                     local data = {...}
-                    local success: boolean, desanitizePaths = sanitizeData(data, -1)
-                    warn("d")
+                    local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
-                        warn("e")
                         local className: string = classDict[getnamecallmethod()]
-                        warn("f")
 
                         if (className == "RemoteFunction" or className == "BindableFunction") then
                             local scr: Instance = getcallingscript()
@@ -629,22 +622,16 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                                 return unpack(returnData, 1, returnDataSize)
                             end
                         else
-                            warn("g")
                             local scr: Instance = getcallingscript()
-                            warn("h")
                             task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
-                            warn("i")
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
-                            warn("j")
 
                             if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                                 return
                             end
                         end
 
-                        warn("k")
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
-                        warn("l")
                     else
                         desanitizeData(desanitizePaths) -- doesn't get blocked if it's an illegal (impossible) call
                     end
@@ -655,7 +642,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 end
             end
         end
-        end, ...))
 
         return oldNamecall(remote, ...)
     end), filters.Namecall)
@@ -672,7 +658,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
                     local data = {...}
-                    local success: boolean, desanitizePaths = sanitizeData(data, -1)
+                    local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
                         local scr: Instance = getcallingscript()
@@ -703,7 +689,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
                     local data = {...}
-                    local success: boolean, desanitizePaths = sanitizeData(data, -1)
+                    local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
                         local scr: Instance = getcallingscript()
@@ -735,7 +721,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
 
                     local data = {...}
-                    local success: boolean, desanitizePaths = sanitizeData(data, -1)
+                    local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
                         callCount += 1
@@ -784,7 +770,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
 
                     local data = {...}
-                    local success: boolean, desanitizePaths = sanitizeData(data, -1)
+                    local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
                         callCount += 1
