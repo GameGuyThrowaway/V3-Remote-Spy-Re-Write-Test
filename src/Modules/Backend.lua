@@ -45,6 +45,7 @@ argCon = argChannel.Event:Connect(function(...)
     local callType = metadata[1]
 
     task_spawn(function(...)
+        warn("adding call:", callType)
         EventPipe:Fire(callType, {...}, select("#", ...), unpack(metadata, 2, #metadata))
 
         metadata = nil
