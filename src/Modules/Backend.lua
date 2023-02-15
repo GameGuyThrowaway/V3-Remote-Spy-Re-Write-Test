@@ -35,12 +35,14 @@ cmdChannel.OnInvoke = function(callType: string, ...)
 end
 
 dataCon = dataChannel.Event:Connect(function(callType: string, ...)
+    warn(callType, "recv")
     if callType == "sendMetadata" then
         metadata = {...}
     end
 end)
 
 argCon = argChannel.Event:Connect(function(...)
+    warn("args recv")
     assert(metadata, "FATAL ERROR, REPORT IMMEDIATELY")
     local callType = metadata[1]
 
@@ -63,7 +65,7 @@ function backendModule.initiateModule(CallBlockList, CallIgnoreList, CallbackBlo
     callBlockList = CallBlockList
     callbackIgnoreList = CallbackIgnoreList
     callbackBlockList = CallbackBlockList
-    
+
     paused = Paused
     callStackLimit = CallStackLimit
     hookCode = HookCode
@@ -110,7 +112,7 @@ function backendModule.setupEvents(TaskSignalLibrary)
         paused = newState
         dataChannel:Fire("updateSpyPauseStatus", newState)
     end)
-    
+
     backendModule.EventPipe = EventPipe
 end
 
