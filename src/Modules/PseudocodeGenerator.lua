@@ -733,7 +733,7 @@ function PseudocodeGenerator.generateCallStack(callStack): string
         callStackString ..= watermarkString
     end
 
-    callStackString ..= "local CallStack = {"
+    callStackString ..= "local PseudoCallStack = {"
     for callIndex, call in callStack do
         callStackString ..= "\n\t[" .. callIndex .. "] = {"
 
@@ -762,7 +762,7 @@ function PseudocodeGenerator.generateConnectedScriptsList(connectedScripts): str
         scriptListString ..= watermarkString
     end
 
-    scriptListString ..= "local Connections = {"
+    scriptListString ..= "local PseudoConnectionList = {"
     for i,v in connectedScripts do
         scriptListString ..= str_format("\n\t[%s] = {\n\t\tInstance = %s,\n\t\tAmount = %s\n\t},", tostring(i), v.Script and getInstancePath(v.Script) or "nil", tostring(v.Amount))
     end
