@@ -270,9 +270,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         offset += 1 -- +1 to account for this function
 
-        local realCallStack = debug.getcallstack(thread)
-        local stackSize = #realCallStack
-        local iterStart = 1
+        local realCallStack = get_call_stack(thread)
+        local stackSize = #realCallStack - 1 -- -1 because first call is the syn hook
+        local iterStart = 2 -- base 1, +1 because the first call is the syn hook
         if stackSize > callStackLimit then
             iterStart = stackSize - callStackLimit + 1 -- base 1
         end
