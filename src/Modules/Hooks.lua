@@ -327,8 +327,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     end
 
 
-    local fire = argChannel.Fire
-    local invoke = cmdChannel.Invoke
+    local fire = argChannel.Fire -- task.spawn'ed cause of OTH limitations
+    local invoke = cmdChannel.Invoke -- coroutine.wrap'ed cause of OTH limitations
 
     local function addCallbackHook(remote: RemoteFunction | BindableFunction, callbackMethod: string, newCallback): boolean
         set_thread_identity(3)
@@ -359,42 +359,45 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 OriginalFunction = newCallback
             }, {__mode = "v"})
 
-            cloneRemote[callbackMethod] = function(...)
-                if not spyPaused then
-                    if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
-                        local argSize: number = select("#", ...)
-                        local data = {...}
-                        local desanitizePaths = partiallySanitizeData(data)
+            -- task.spawn cause of OTH limitations
+            task_spawn(function()
+                cloneRemote[callbackMethod] = function(...)
+                    if not spyPaused then
+                        if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
+                            local argSize: number = select("#", ...)
+                            local data = {...}
+                            local desanitizePaths = partiallySanitizeData(data)
 
-                        callCount += 1
-                        local returnKey: string = channelKey .. "|" .. callCount
+                            callCount += 1
+                            local returnKey: string = channelKey .. "|" .. callCount
 
-                        local scr: Instance = getcallingscript()
-                        task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
-                        task_spawn(fire, argChannel, unpack(data, 1, argSize))
-                        desanitizeData(desanitizePaths)
+                            local scr: Instance = getcallingscript()
+                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
+                            task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                            desanitizeData(desanitizePaths)
 
-                        if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
-                            return
+                            if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
+                                return
+                            else
+                                local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...))
+                                local desanitizeReturnPaths = partiallySanitizeData(returnData)
+
+                                task_spawn(fire, dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                                task_spawn(fire, argChannel, unpack(returnData, 1, returnDataSize))
+                                desanitizeData(desanitizeReturnPaths)
+
+                                return unpack(returnData, 1, returnDataSize)
+                            end
                         else
-                            local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...))
-                            local desanitizeReturnPaths = partiallySanitizeData(returnData)
-
-                            task_spawn(fire, dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
-                            task_spawn(fire, argChannel, unpack(returnData, 1, returnDataSize))
-                            desanitizeData(desanitizeReturnPaths)
-
-                            return unpack(returnData, 1, returnDataSize)
-                        end
-                    else
-                        if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
-                            return
+                            if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
+                                return
+                            end
                         end
                     end
-                end
 
-                return coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...)
-            end
+                    return coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...)
+                end
+            end)
         else
             callbackHooks[remoteID].OriginalFunction = newCallback
         end
