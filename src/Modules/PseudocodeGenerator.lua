@@ -474,13 +474,13 @@ function PseudocodeGenerator.generateCode(remote: Instance, callback: boolean, c
                 end
                 pseudocode = str_sub(pseudocode, 1, -3)
                 if callback then
-                    pseudocode ..= " = getcallbackmember(remote, \"" .. remData.Namecall .. "\")()"
+                    pseudocode ..= " = getcallbackmember(remote, \"" .. remData.Callback .. "\")()"
                 else
                     pseudocode ..= " = remote:" .. remData.Namecall .. "()"
                 end
             else
                 if callback then
-                    pseudocode ..= "getcallbackmember(remote, \"" .. remData.Namecall .. "\")()"
+                    pseudocode ..= "getcallbackmember(remote, \"" .. remData.Callback .. "\")()"
                 else
                     pseudocode ..= "remote:" .. remData.Namecall .. "()"
                 end
@@ -500,13 +500,13 @@ function PseudocodeGenerator.generateCode(remote: Instance, callback: boolean, c
                 end
                 pseudocode = str_sub(pseudocode, 1, -3) .. " = "
                 if callback then
-                    pseudocode ..= ("getcallbackmember(" .. pathStr .. ", \"" .. remData.Namecall .. "\")()")
+                    pseudocode ..= ("getcallbackmember(" .. pathStr .. ", \"" .. remData.Callback .. "\")()")
                 else
                     pseudocode ..= (pathStr .. ":InvokeServer()")
                 end
             else
                 if callback then
-                    pseudocode = ("getcallbackmember(" .. pathStr .. ", \"" .. remData.Namecall .. "\")()")
+                    pseudocode = ("getcallbackmember(" .. pathStr .. ", \"" .. remData.Callback .. "\")()")
                 else
                     pseudocode = (pathStr .. ":" .. remData.Namecall .. "()")
                 end
