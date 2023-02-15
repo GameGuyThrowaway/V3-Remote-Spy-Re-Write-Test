@@ -77,9 +77,9 @@ function backendModule.initiateModule(CallBlockList, CallIgnoreList, CallbackBlo
     end
 end
 
-function backendModule.setupEvents(EventPipe)
+function backendModule.setupEvents(EventPipeModule)
     assert(not EventPipe, "Events Already Setup")
-    EventPipe = EventPipe.new({
+    EventPipe = EventPipeModule.new({
         "onRemoteCall",
         "onRemoteCallback",
         "onRemoteConnection",

@@ -9,10 +9,10 @@ function interfaceModule.initiateModule(remoteList, blockList, ignoreList, setti
     Settings = settings
 end
 
-function interfaceModule.setupEvents(EventPipe)
+function interfaceModule.setupEvents(EventPipeModule)
     assert(not EventPipe, "Events Already Setup")
     
-    EventPipe = EventPipe.new({
+    EventPipe = EventPipeModule.new({
         -- incoming data
         'onNewCall',
         'onNewCallback',
