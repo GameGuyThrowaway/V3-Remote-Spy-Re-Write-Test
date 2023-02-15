@@ -6,16 +6,16 @@ local defaultSettings = {
     -- core options
     FireServer = true,
     InvokeServer = true,
-    Fire = true,
-    Invoke = true,
+    Fire = false,
+    Invoke = false,
 
-    OnClientEvent = true,
-    OnClientInvoke = true,
-    OnEvent = true,
-    OnInvoke = true,
+    OnClientEvent = false,
+    OnClientInvoke = false,
+    OnEvent = false,
+    OnInvoke = false,
 
-    Callbacks = true,
-    Bindables = true,
+    Callbacks = false,
+    Bindables = false,
     Remotes = true,
 
     CallStackSizeLimit = 10,
@@ -59,15 +59,15 @@ SettingsModule.Settings = defaultSettings
 local Settings = SettingsModule.Settings -- localize the Settings table
 
 function SettingsModule.loadSettings()
-    if not isfolder("wavespy") then
-        makefolder("wavespy")
+    if not isfolder("Remote Spy") then
+        makefolder("Remote Spy")
     end
-    if not isfile("wavespy/Settings.json") then
+    if not isfile("Remote Spy/Settings.json") then
         SettingsModule.saveSettings()
         return
     end
 
-    local tempSettings = httpService:JSONDecode(readfile("wavespy/Settings.json"))
+    local tempSettings = httpService:JSONDecode(readfile("Remote Spy/Settings.json"))
     for i,v in tempSettings do -- this is in case I add new settings
         if type(Settings[i]) == type(v) then
             Settings[i] = v
@@ -76,10 +76,10 @@ function SettingsModule.loadSettings()
 end
 
 function SettingsModule.saveSettings()
-    if not isfolder("wavespy") then
-        makefolder("wavespy")
+    if not isfolder("Remote Spy") then
+        makefolder("Remote Spy")
     end
-    writefile("wavespy/Settings.json", httpService:JSONEncode(Settings))
+    writefile("Remote Spy/Settings.json", httpService:JSONEncode(Settings))
 end
 
 return SettingsModule
