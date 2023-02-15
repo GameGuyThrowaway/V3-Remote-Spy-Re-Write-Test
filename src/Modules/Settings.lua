@@ -14,12 +14,12 @@ local defaultSettings = {
     OnEvent = false,
     OnInvoke = false,
 
-    Callbacks = false,
-    Bindables = false,
+    Callbacks = true,
+    Bindables = true,
     Remotes = true,
 
     CallStackSizeLimit = 10,
-    LogPausedTypes = false,
+    LogPausedTypes = true,
     CacheLimit = true,
     MaxCallAmount = 1000,
     Paused = false,

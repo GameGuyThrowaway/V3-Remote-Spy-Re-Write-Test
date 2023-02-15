@@ -372,7 +372,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             callCount += 1
                             local returnKey: string = channelKey .. "|" .. callCount
 
-                            local scr: Instance = getcallingscript()
+                            local th: thread = coroutine_running()
+                            local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+
                             task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
@@ -458,7 +460,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
 
-                if task_spawn(fire, "checkBlocked", remoteID, true) then
+                if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
                     return false
                 end
 
@@ -600,12 +602,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         local className: string = classDict[getnamecallmethod()]
 
                         if (className == "RemoteFunction" or className == "BindableFunction") then
-                            local scr: Instance = getcallingscript()
+                            local th: thread = oth_get_original_thread()
+                            local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
                             callCount += 1
                             local returnKey: string = channelKey .. "|" .. callCount
 
-                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
+                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr) or scr, createCallStack(th, 0))
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
 
@@ -622,7 +625,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                                 return unpack(returnData, 1, returnDataSize)
                             end
                         else
-                            local scr: Instance = getcallingscript()
+                            local th: thread = oth_get_original_thread()
+                            local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+
                             task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
 
@@ -659,7 +664,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
-                        local scr: Instance = getcallingscript()
+                        local th: thread = oth_get_original_thread()
+                        local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                     end
@@ -690,7 +697,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
-                        local scr: Instance = getcallingscript()
+                        local th: thread = oth_get_original_thread()
+                        local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                     end
@@ -725,7 +734,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         callCount += 1
                         local returnKey: string = channelKey.."|"..callCount
 
-                        local scr: Instance = getcallingscript()
+                        local th: thread = oth_get_original_thread()
+                        local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
@@ -774,7 +785,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         callCount += 1
                         local returnKey: string = channelKey.."|"..callCount
 
-                        local scr: Instance = getcallingscript()
+                        local th: thread = oth_get_original_thread()
+                        local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
