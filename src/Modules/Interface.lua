@@ -1,12 +1,16 @@
 local interfaceModule = {}
 
-local EventPipe, RemoteList, BlockList, IgnoreList, Settings
+local EventPipe, callList, callbackList, callBlockList, callIgnoreList, callbackBlockList, callbackIgnoreList, Settings
 
-function interfaceModule.initiateModule(remoteList, blockList, ignoreList, settings)
-    RemoteList = remoteList
-    BlockList = blockList
-    IgnoreList = ignoreList
-    Settings = settings
+function interfaceModule.initiateModule(CallList, CallbackList, CallBlockList, CallIgnoreList, CallbackBlockList, CallbackIgnoreList, SettingsTable)
+    callList = CallList
+    callbackList = CallbackList
+    callBlockList = CallBlockList
+    callIgnoreList = CallIgnoreList
+    callbackBlockList = CallbackBlockList
+    callbackIgnoreList = CallbackIgnoreList
+    
+    Settings = SettingsTable
 end
 
 function interfaceModule.setupEvents(TaskSignalLibrary)
