@@ -39,6 +39,9 @@ local callbackBlockList = {} -- list of blocked callbacks and connections
 local callbackIgnoreList = {} -- list of ignored callbacks and connections
 local callbackList = {} -- list of callbacks and connections
 
+_G.cL = callList
+_G.cbL = callbackList
+
 local returnValuePointerList = {} -- hashmap used that points a update key to a table
 
 
