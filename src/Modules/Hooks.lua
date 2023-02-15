@@ -575,7 +575,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             warn("failed, returning")
             return oldNewIndex(remote, idx, newidx)
         end
-        warn("skipped", getcallbackmember(remote, callbackMethod))
+        warn("skipped", getcallbackmember(remote, idx))
     end), filters.NewIndex)
     oldHooks.NewIndex = oldNewIndex
 
