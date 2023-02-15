@@ -15,6 +15,8 @@ function interfaceModule.setupEvents(EventPipe)
     EventPipe = EventPipe.new({
         -- incoming data
         'onNewCall',
+        'onNewCallback',
+        'onNewConnection',
         'onReturnValueUpdated',
 
         -- outgoing data
@@ -35,11 +37,17 @@ function interfaceModule.setupEvents(EventPipe)
 
     do -- initialize incoming requests
         EventPipe:ListenToEvent('onNewCall', function(remoteID: string, call)
-            rconsolewarn("New Call: " .. remoteID .. " | " .. call.ArgCount)
+            print("New Call:", remoteID, " | ", call.ArgCount)
+        end)
+        EventPipe:ListenToEvent('onNewCallback', function(remoteID: string, call)
+            print("New Callback: ", remoteID, " | ", call.ArgCount)
+        end)
+        EventPipe:ListenToEvent('onNewConnection', function(remoteID: string, call)
+            print("New Connection: ", remoteID, " | ", call.ArgCount)
         end)
 
         EventPipe:ListenToEvent('onReturnValueUpdated', function(remoteID: string, call)
-            rconsolewarn("New ReturnValue: " .. remoteID .. " | " .. call.ReturnCount)
+            print("New ReturnValue: ", remoteID, " | ", call.ReturnCount)
         end)
     end
 
