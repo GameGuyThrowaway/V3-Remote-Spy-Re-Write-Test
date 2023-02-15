@@ -1,6 +1,6 @@
 if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     _G.remoteSpyHookedState = true
-    
+
     local task_spawn = task.spawn
     local coroutine_running = coroutine.running
     local coroutine_wrap = coroutine.wrap
@@ -12,7 +12,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oth_get_original_thread = syn.oth.get_original_thread
     local oth_hook = syn.oth.hook
     local trampoline_call = syn.trampoline_call
-    
+
     local spyPaused: boolean, callStackLimit: number, channelKey: number, cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = ...
 
     local callCount: number = 0
@@ -24,24 +24,24 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         selfDestruct = function()
             connection:Disconnect()
             -- need to unhook all signals/functions (callbacks included) here
-        
+
             local unHook = syn.oth.unhook
             unHook(Instance.new("RemoteEvent").FireServer, oldHooks.FireServer)
             unHook(Instance.new("RemoteFunction").InvokeServer, oldHooks.InvokeServer)
             unHook(Instance.new("BindableEvent").Fire, oldHooks.Fire)
             unHook(Instance.new("BindableFunction").Invoke, oldHooks.Invoke)
-            
+
             local mt = getrawmetatable(game)
             unHook(mt.__namecall, oldHooks.Namecall)
             unHook(mt.__index, oldHooks.Index)
             unHook(mt.__newindex, oldHooks.NewIndex)
-            
+
             for _,v in callbackHooks do
                 if v.Instance and v.OriginalFunction then -- might've gced by now
                     v.Instance[v.CallbackName] = v.OriginalFunction
                 end
             end
-        
+
             for _,v: RBXScriptSignal in signalHooks do
                 if issignalhooked(v) then
                     restoresignal(v)
@@ -164,7 +164,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
             elseif valueType == "Instance" then -- prevent weak table checks
-                
+
                 local dataReadOnly: boolean = isreadonly(data)
                 if dataReadOnly then setreadonly(data, false) end
 
@@ -252,7 +252,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 end
             end
         end
-        
+
         if first then
             thread, stack = nil, nil -- set thread and stack globals back to nil, to be remade when the next sanitation occurs
             if deadCall then
@@ -265,25 +265,25 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local function createCallStack(thread: thread, offset: number) -- offset is always 2 in this code, 1 for the hook, 1 because we don't need to log the C function call
         local newCallStack = {}
-    
+
         offset += 1 -- +1 to account for this function
-    
+
         local realCallStack = debug.getcallstack(thread)
         local stackSize = #realCallStack
         local iterStart = 1
         if stackSize > callStackLimit then
             iterStart = stackSize - callStackLimit + 1 -- base 1
         end
-    
+
         for i = iterStart, stackSize do
             local v = realCallStack[i]
-    
+
             local funcInfo = getinfo(v.func)
             local tempScript = rawget(getfenv(v.func), "script")
-    
+
             local varArg = false -- converting is_vararg from 1/0 to true/false
             if funcInfo.is_vararg == 1 then varArg = true end
-    
+
             newCallStack[i-iterStart+1] = {
                 Script = typeof(tempScript) == "Instance" and cloneref(tempScript),
                 Type = funcInfo.what,
@@ -294,7 +294,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 UpvalueCount = funcInfo.nups
             }
         end
-    
+
         return newCallStack
     end
 
@@ -305,19 +305,19 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local function newHookMetamethod(toHook, mtmethod: string, hookFunction, filter: FilterBase)
         local oldFunction
 
-        local func = getfilter(filter, function(...) 
+        local func = getfilter(filter, function(...)
             return oldFunction(...)
         end, hookFunction)
 
         restorefunction(getrawmetatable(toHook)[mtmethod]) -- restores any old hooks
-        oldFunction = oth_hook(getrawmetatable(toHook)[mtmethod], func) -- hookmetamethod(toHook, mtmethod, func) 
+        oldFunction = oth_hook(getrawmetatable(toHook)[mtmethod], func) -- hookmetamethod(toHook, mtmethod, func)
         return oldFunction
     end
 
     local function filteredOth(toHook, hookFunction, filter: FilterBase)
         local oldFunction
 
-        local func = getfilter(filter, function(...) 
+        local func = getfilter(filter, function(...)
             return oldFunction(...)
         end, hookFunction)
 
@@ -329,7 +329,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local fire = argChannel.Fire
     local invoke = cmdChannel.Invoke
-    
+
     local function addCallbackHook(remote: RemoteFunction | BindableFunction, callbackMethod: string, newCallback): boolean
         set_thread_identity(3)
 
@@ -373,7 +373,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
-                        
+
                         if oldHooks.coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                             return
                         else
@@ -408,7 +408,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         if not issignalhooked(signal) then
             local remoteID: string = get_debug_id(remote)
             local cloneRemote: RemoteEvent | BindableEvent = cloneref(remote)
-            
+
             local scriptCache = {} -- global because the hook is repeatedly called, should be cleared after the last hook call
             local iterNumber = 0
             local conCount = -1
@@ -426,7 +426,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
                         local scr = issynapsethread(coroutine_running()) and "Synapse" or getcallingscript()
                         if typeof(scr) == "Instance" then scr = cloneref(scr) end
-                        
+
                         if scr then
                             if scriptCache[scr] then
                                 scriptCache[scr] += 1
@@ -548,13 +548,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         }),
 
         BindableEvent = AllFilter.new({
-            InstanceTypeFilter.new(1, "BindableEvent"), 
-            NotFilter.new(ArgumentFilter.new(1, argChannel)), 
+            InstanceTypeFilter.new(1, "BindableEvent"),
+            NotFilter.new(ArgumentFilter.new(1, argChannel)),
             NotFilter.new(ArgumentFilter.new(1, dataChannel))
         }),
 
         BindableFunction = AllFilter.new({
-            InstanceTypeFilter.new(1, "BindableFunction"), 
+            InstanceTypeFilter.new(1, "BindableFunction"),
             NotFilter.new(ArgumentFilter.new(1, cmdChannel))
         }),
 
@@ -570,20 +570,22 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         end
     end), filters.NewIndex)
     oldHooks.NewIndex = oldNewIndex
-    
+
     local oldIndex
     oldIndex = newHookMetamethod(game, "__index", newcclosure(function(remote: RemoteEvent | BindableEvent, idx: string)
         local newSignal = oldIndex(remote, idx)
         task_spawn(addSignalHook, cloneref(remote), idx, newSignal)
-    
+
         return newSignal
     end), filters.Index)
     oldHooks.Index = oldIndex
 
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
+        warn(pcall(function(...)
         if not spyPaused then
-            local argSize = select("#", ...)
+            local argSize: number = select("#", ...)
+            warn(argSize)
             if argSize < 7996 then
                 local cloneRemote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
@@ -604,7 +606,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
-                            
+
                             if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                                 return
                             else
@@ -638,6 +640,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 end
             end
         end
+        end, ...))
 
         return oldNamecall(remote, ...)
     end), filters.Namecall)
@@ -647,7 +650,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
         if not spyPaused then
-            local argSize = select("#", ...)
+            local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: RemoteEvent = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
@@ -678,7 +681,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldFire
     oldFire = filteredOth(Instance.new("BindableEvent").Fire, newcclosure(function(remote: BindableEvent, ...: any)
         if not spyPaused then
-            local argSize = select("#", ...)
+            local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: BindableEvent = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
@@ -709,7 +712,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldInvokeServer
     oldInvokeServer = filteredOth(Instance.new("RemoteFunction").InvokeServer, newcclosure(function(remote: RemoteFunction, ...: any)
         if not spyPaused then
-            local argSize = select("#", ...)
+            local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: RemoteFunction = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
@@ -722,12 +725,12 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     if success then
                         callCount += 1
                         local returnKey: string = channelKey.."|"..callCount
-                        
+
                         local scr: Instance = getcallingscript()
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
-                        
+
                         if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                             return
                         else
@@ -758,7 +761,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldInvoke
     oldInvoke = filteredOth(Instance.new("BindableFunction").Invoke, newcclosure(function(remote: BindableFunction, ...: any)
         if not spyPaused then
-            local argSize = select("#", ...)
+            local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: BindableEvent = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
@@ -776,7 +779,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr), createCallStack(oth_get_original_thread(), 0))
                         task_spawn(fire, argChannel, unpack(data, 1, argSize))
                         desanitizeData(desanitizePaths)
-                        
+
                         if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                             return
                         else
