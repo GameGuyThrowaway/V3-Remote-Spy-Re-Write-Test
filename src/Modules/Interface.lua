@@ -18,39 +18,39 @@ function interfaceModule.setupEvents(TaskSignalLibrary)
 
     EventPipe = TaskSignalLibrary.new({
         -- incoming data
-        'onNewCall',
-        'onNewCallback',
-        'onNewConnection',
-        'onReturnValueUpdated',
+        "onNewCall",
+        "onNewCallback",
+        "onNewConnection",
+        "onReturnValueUpdated",
 
         -- outgoing data
-        'onRemoteBlocked',
-        'onRemoteIgnored',
-        'onCallStackLimitChanged',
+        "onRemoteBlocked",
+        "onRemoteIgnored",
+        "onCallStackLimitChanged",
 
         -- core requests
-        'generatePseudocode',
-        'generatePseudoCallStack',
-        'generatePseudoReturnValue',
-        'getCallingScriptPath',
-        'decompileCallingScript',
-        'getRemotePath',
-        'repeatCall',
-        'clearRemoteCalls'
+        "generatePseudocode",
+        "generatePseudoCallStack",
+        "generatePseudoReturnValue",
+        "getCallingScriptPath",
+        "decompileCallingScript",
+        "getRemotePath",
+        "repeatCall",
+        "clearRemoteCalls"
     })
 
     do -- initialize incoming requests
-        EventPipe:ListenToEvent('onNewCall', function(remoteID: string, call)
+        EventPipe:ListenToEvent("onNewCall", function(remoteID: string, call)
             print("New Call:", remoteID, " | ", call.ArgCount)
         end)
-        EventPipe:ListenToEvent('onNewCallback', function(remoteID: string, call)
+        EventPipe:ListenToEvent("onNewCallback", function(remoteID: string, call)
             print("New Callback:", remoteID, " | ", call.ArgCount)
         end)
-        EventPipe:ListenToEvent('onNewConnection', function(remoteID: string, call)
+        EventPipe:ListenToEvent("onNewConnection", function(remoteID: string, call)
             print("New Connection:", remoteID, " | ", call.ArgCount)
         end)
 
-        EventPipe:ListenToEvent('onReturnValueUpdated', function(remoteID: string, call)
+        EventPipe:ListenToEvent("onReturnValueUpdated", function(remoteID: string, call)
             print("New ReturnValue:", remoteID, " | ", call.ReturnCount)
         end)
     end

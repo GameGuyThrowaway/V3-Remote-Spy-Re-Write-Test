@@ -233,26 +233,26 @@ do -- initialize
     end
 
     -- block event, unnecessary if it gets the list passed directly
-    interface.EventPipe:ListenToEvent('onRemoteBlocked', function(remoteID: string, callback: boolean, status: boolean)
+    interface.EventPipe:ListenToEvent("onRemoteBlocked", function(remoteID: string, callback: boolean, status: boolean)
         local list = callback and callbackBlockList or callBlockList
 
         list[remoteID] = status
     end)
 
     -- ignore event, unnecessary if it gets the list passed directly
-    interface.EventPipe:ListenToEvent('onRemoteIgnored', function(remoteID: string, callback: boolean, status: boolean)
+    interface.EventPipe:ListenToEvent("onRemoteIgnored", function(remoteID: string, callback: boolean, status: boolean)
         local list = callback and callbackIgnoreList or callIgnoreList
 
         list[remoteID] = status
     end)
 
     -- special case for updating callstack limit (needs to be sent to all lua states)
-    interface.EventPipe:ListenToEvent('onCallStackLimitChanged', function(newLimit: number)
+    interface.EventPipe:ListenToEvent("onCallStackLimitChanged", function(newLimit: number)
         backend.EventPipe:Fire("updateCallStackLimit", newLimit)
     end)
 
     -- interface requests
-    interface.EventPipe:ListenToEvent('generatePseudocode', function(remoteID: string, callback: boolean, callIndex: number, receiving: boolean)
+    interface.EventPipe:ListenToEvent("generatePseudocode", function(remoteID: string, callback: boolean, callIndex: number, receiving: boolean)
         local list = callback and callbackList or callList
         local remoteInfo = list[remoteID]
         local call = remoteInfo and remoteInfo.Calls[callIndex]
@@ -267,18 +267,18 @@ do -- initialize
             return false
         end
     end)
-    interface.EventPipe:ListenToEvent('generatePseudoCallStack', function(remoteID: string, callIndex: number)
+    interface.EventPipe:ListenToEvent("generatePseudoCallStack", function(remoteID: string, callIndex: number)
         return pseudocodeGenerator.generateCallStack(callList[remoteID].Calls[callIndex].CallStack)
     end)
-    interface.EventPipe:ListenToEvent('generateConnectedScriptsList', function(remoteID: string, callIndex: number)
+    interface.EventPipe:ListenToEvent("generateConnectedScriptsList", function(remoteID: string, callIndex: number)
         return pseudocodeGenerator.generateConnectedScriptsList(callbackList[remoteID].Calls[callIndex].ConnectedScripts)
     end)
-    interface.EventPipe:ListenToEvent('generatePseudoReturnValue', function(remoteID: string, callback: boolean, callIndex: number)
+    interface.EventPipe:ListenToEvent("generatePseudoReturnValue", function(remoteID: string, callback: boolean, callIndex: number)
         local list = callback and callbackList or callList
 
         return pseudocodeGenerator.generateReturnValue(list[remoteID].Calls[callIndex].ReturnValue)
     end)
-    interface.EventPipe:ListenToEvent('getScriptPath', function(remoteID: string, callback: boolean, callIndex: number)
+    interface.EventPipe:ListenToEvent("getScriptPath", function(remoteID: string, callback: boolean, callIndex: number)
         if callback then
             local remoteInfo = callbackList[remoteID]
             local call = remoteInfo and remoteInfo.Calls[callIndex]
@@ -297,7 +297,7 @@ do -- initialize
             end
         end
     end)
-    interface.EventPipe:ListenToEvent('decompileScript', function(remoteID: string, callback: boolean, callIndex: number)
+    interface.EventPipe:ListenToEvent("decompileScript", function(remoteID: string, callback: boolean, callIndex: number)
         if callback then
             local remoteInfo = callbackList[remoteID]
             local call = remoteInfo and remoteInfo.Calls[callIndex]
@@ -316,7 +316,7 @@ do -- initialize
             end
         end
     end)
-    interface.EventPipe:ListenToEvent('getRemotePath', function(remoteID: string)
+    interface.EventPipe:ListenToEvent("getRemotePath", function(remoteID: string)
         local remoteInfo = callList[remoteID] or callbackList[remoteID]
         if remoteInfo then
             return pseudocodeGenerator.getInstancePath(remoteInfo.Remote)
@@ -324,7 +324,7 @@ do -- initialize
             return false
         end
     end)
-    interface.EventPipe:ListenToEvent('repeatCall', function(remoteID: string, callback: boolean, callIndex: number, amount: number)
+    interface.EventPipe:ListenToEvent("repeatCall", function(remoteID: string, callback: boolean, callIndex: number, amount: number)
         local list = callback and callbackList or callList
         local remoteInfo = list[remoteID]
         local remote = remoteInfo.Remote
@@ -334,7 +334,7 @@ do -- initialize
 
         optimizedRepeatCall(remote, callback, amount, unpack(call.Args, 1, call.ArgCount))
     end)
-    interface.EventPipe:ListenToEvent('clearRemoteCalls', function(remoteID: string, callback: boolean)
+    interface.EventPipe:ListenToEvent("clearRemoteCalls", function(remoteID: string, callback: boolean)
         local list = callback and callbackList or callList
         local remoteInfo = list[remoteID]
         if remoteInfo.Destroyed then
@@ -343,7 +343,7 @@ do -- initialize
             clear_table(remoteInfo.Calls) -- clear actual calls, not remote data though
         end
     end)
-    interface.EventPipe:ListenToEvent('clearAllCalls', function()
+    interface.EventPipe:ListenToEvent("clearAllCalls", function()
         table_foreach(callList, function(call)
             call.DestroyedConnection:Disconnect()
         end)
@@ -356,30 +356,30 @@ do -- initialize
     end)
 
     -- backend events
-    backend.EventPipe:ListenToEvent('onRemoteCall', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callingScript: Instance, callStack)
+    backend.EventPipe:ListenToEvent("onRemoteCall", function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callingScript: Instance, callStack)
         if not Settings.Paused then
             local class = remote.ClassName
             if (Settings[dataList[class].Namecall] or Settings.LogPausedTypes) and Settings[typeList[class]] then
                 local log = logCall(remote, remoteID, returnValueKey, callingScript, callStack, args, argCount)
-                interface.EventPipe:Fire('onNewCall', remoteID, log)
+                interface.EventPipe:Fire("onNewCall", remoteID, log)
             end
         end
     end)
-    backend.EventPipe:ListenToEvent('onRemoteCallback', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callbackCreator: Instance)
+    backend.EventPipe:ListenToEvent("onRemoteCallback", function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callbackCreator: Instance)
         if Settings.Callbacks and not Settings.Paused and (Settings[dataList[remote.ClassName].Callback] or Settings.LogPausedTypes) then
             local log = logCallback(remote, remoteID, returnValueKey, callbackCreator, args, argCount)
-            interface.EventPipe:Fire('onNewCallback', remoteID, log)
+            interface.EventPipe:Fire("onNewCallback", remoteID, log)
         end
     end)
-    backend.EventPipe:ListenToEvent('onRemoteConnection', function(args, argCount: number, remote: Instance, remoteID: string, connectedScripts)
+    backend.EventPipe:ListenToEvent("onRemoteConnection", function(args, argCount: number, remote: Instance, remoteID: string, connectedScripts)
         if Settings.Callbacks and not Settings.Paused and (Settings[dataList[remote.ClassName].Signal] or Settings.LogPausedTypes) then
             local log = logConnection(remote, remoteID, connectedScripts, args, argCount)
-            interface.EventPipe:Fire('onNewConnection', remoteID, log)
+            interface.EventPipe:Fire("onNewConnection", remoteID, log)
         end
     end)
-    backend.EventPipe:ListenToEvent('onReturnValueUpdated', function(returnData, returnCount: number, returnKey: string)
+    backend.EventPipe:ListenToEvent("onReturnValueUpdated", function(returnData, returnCount: number, returnKey: string)
         local log, remoteID: string = updateReturnValue(returnKey, returnData, returnCount)
-        interface.EventPipe:Fire('onReturnValueUpdated', remoteID, log)
+        interface.EventPipe:Fire("onReturnValueUpdated", remoteID, log)
     end)
 
     settingsModule.loadSettings()

@@ -135,7 +135,7 @@ local makeUserdataConstructor = {
         return "FloatCurveKey.new(" .. tostring(original.Time) .. ", " .. tostring(original.Value) .. ", "  .. tostring(original.Interpolation) .. ")"
     end,
     Font = function(original: Font): string
-        return str_format("(function() local clone: Font = Font.new(%s, %s, %s) clone.Bold = %s return clone end)()", '"' .. original.Family .. '"', tostring(original.Weight), tostring(original.Style), tostring(original.Bold))
+        return str_format("(function() local clone: Font = Font.new(%s, %s, %s) clone.Bold = %s return clone end)()", "\"" .. original.Family .. "\"", tostring(original.Weight), tostring(original.Style), tostring(original.Bold))
     end,
     Instance = function(original: Instance): string
         return getInstancePath(original)
@@ -278,8 +278,8 @@ tableToString = function(data: any, format: boolean, root: any, indents: number)
         indents = indents or 1
         root = root or data
 
-        local head = format and '{\n' or '{ '
-        local indent = str_rep('\t', indents)
+        local head = format and "{\n" or "{ "
+        local indent = str_rep("\t", indents)
         local consecutiveIndices = (#data ~= 0)
         local elementCount = 0
 
@@ -324,9 +324,9 @@ tableToString = function(data: any, format: boolean, root: any, indents: number)
         end
 
         if format then
-            return #head > 2 and str_format("%s\n%s", str_sub(head, 1, -3), str_rep('\t', indents - 1) .. '}') or "{}"
+            return #head > 2 and str_format("%s\n%s", str_sub(head, 1, -3), str_rep("\t", indents - 1) .. "}") or "{}"
         else
-            return #head > 2 and (str_sub(head, 1, -3) .. ' }') or "{}"
+            return #head > 2 and (str_sub(head, 1, -3) .. " }") or "{}"
         end
     elseif dataType == "number" then
         local dataStr = tostring(data)
@@ -382,7 +382,7 @@ getInstancePath = function(instance: Instance): string
     set_thread_identity(old)
 
     local name = instance.Name
-    local head = (#str_gsub(name, "[%a_]", "") > 0 and ("[" .. purifyString(name, true) .. "]")) or (#name > 0 and '.' .. name) or "['']"
+    local head = (#str_gsub(name, "[%a_]", "") > 0 and ("[" .. purifyString(name, true) .. "]")) or (#name > 0 and "." .. name) or "[\"\"]"
 
     if not instance.Parent and id ~= gameId then
         return "(nil)" .. head .. (isInstanceParentedToNil(instance) and " --[[ INSTANCE PARENTED TO NIL ]]" or " --[[ INSTANCE DELETED ]]")
@@ -392,24 +392,24 @@ getInstancePath = function(instance: Instance): string
         elseif id == workspaceId then
             return "workspace"
         elseif id == clientId then
-            return 'game:GetService("Players").LocalPlayer'
+            return "game:GetService(\"Players\").LocalPlayer"
         else
             local plr = Players:GetPlayerFromCharacter(instance)
             if plr then
                 if plr.UserId == clientUserId then
-                    return 'game:GetService("Players").LocalPlayer.Character'
+                    return "game:GetService(\"Players\").LocalPlayer.Character"
                 else
                     if tonumber(str_sub(plr.Name, 1, 1)) then
-                        return 'game:GetService("Players")["'..plr.Name..'"]".Character'
+                        return "game:GetService(\"Players\")[\""..plr.Name.."\"]\".Character"
                     else
-                        return 'game:GetService("Players").'..plr.Name..'.Character'
+                        return "game:GetService(\"Players\")."..plr.Name..".Character"
                     end
                 end
             end
             local _success, result = pcall(game.GetService, game, instance.ClassName)
 
             if _success and result then
-                return 'game:GetService("' .. instance.ClassName .. '")'
+                return "game:GetService(\"" .. instance.ClassName .. "\")"
             end
         end
     end
@@ -704,16 +704,20 @@ function PseudocodeGenerator.generateReceivingCode(remote: Instance, call): stri
         end
     end
 
-    for i = 1, argCount do
-        pseudocode ..= "p" .. i .. ", "
-    end
-    pseudocode = (str_sub(pseudocode, 1, -3) .. ")") -- get rid of the last ", ", and replace it with a close bracket
+    if argCount > 0 then
+        for i = 1, argCount do
+            pseudocode ..= "p" .. i .. ", "
+        end
+        pseudocode = (str_sub(pseudocode, 1, -3) .. ")") -- get rid of the last ", ", and replace it with a close bracket
 
-    pseudocode ..= "\n\tprint("
-    for i = 1, argCount do
-        pseudocode ..= "p" .. i .. ", "
+        pseudocode ..= "\n\tprint("
+        for i = 1, argCount do
+            pseudocode ..= "p" .. i .. ", "
+        end
+        pseudocode = (str_sub(pseudocode, 1, -3) .. ")") -- print out every arg (as an example)
+    else
+        pseudocode ..= ")\n\tprint(\"Called\")"
     end
-    pseudocode = (str_sub(pseudocode, 1, -3) .. ")") -- print out every arg (as an example)
 
     pseudocode ..= "\nend"
     if remData.Signal then
