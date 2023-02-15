@@ -545,7 +545,22 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     ArgumentFilter.new(2, "event")
                 })
             })
-        })
+        }),
+
+        BindableEvent = AllFilter.new({
+            InstanceTypeFilter.new(1, "BindableEvent"), 
+            NotFilter.new(ArgumentFilter.new(argChannel)), 
+            NotFilter.new(ArgumentFilter.new(dataChannel))
+        }),
+
+        BindableFunction = AllFilter.new({
+            InstanceTypeFilter.new(1, "BindableFunction"), 
+            NotFilter.new(ArgumentFilter.new(cmdChannel))
+        }),
+
+        RemoteEvent = InstanceTypeFilter.new(1, "RemoteEvent"),
+
+        RemoteFunction = InstanceTypeFilter.new(1, "RemoteFunction")
     }
 
     local oldNewIndex
@@ -657,7 +672,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         end
 
         return oldFireServer(remote, ...)
-    end), InstanceTypeFilter.new(1, "RemoteEvent"))
+    end), filters.RemoteEvent)
     oldHooks.FireServer = oldFireServer
 
     local oldFire
@@ -688,7 +703,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         end
 
         return oldFire(fire, remote, ...)
-    end), InstanceTypeFilter.new(1, "BindableEvent"))
+    end), filters.BindableEvent)
     oldHooks.Fire = oldFire
 
     local oldInvokeServer
@@ -737,7 +752,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         end
 
         return oldInvokeServer(remote, ...)
-    end), InstanceTypeFilter.new(1, "RemoteFunction"))
+    end), filters.RemoteFunction)
     oldHooks.InvokeServer = oldInvokeServer
 
     local oldInvoke
@@ -786,6 +801,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         end
 
         return oldcoroutine_wrap(invoke)(remote, ...)
-    end), InstanceTypeFilter.new(1, "BindableFunction"))
+    end), filters.BindableFunction)
     oldHooks.Invoke = oldInvoke
 end
