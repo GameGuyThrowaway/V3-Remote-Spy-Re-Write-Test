@@ -77,9 +77,9 @@ function backendModule.initiateModule(CallBlockList, CallIgnoreList, CallbackBlo
     end
 end
 
-function backendModule.setupEvents(EventPipeModule)
+function backendModule.setupEvents(TaskSignalLibrary)
     assert(not EventPipe, "Events Already Setup")
-    EventPipe = EventPipeModule.new({
+    EventPipe = TaskSignalLibrary.new({
         "onRemoteCall",
         "onRemoteCallback",
         "onRemoteConnection",

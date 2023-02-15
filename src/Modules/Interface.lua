@@ -9,10 +9,10 @@ function interfaceModule.initiateModule(remoteList, blockList, ignoreList, setti
     Settings = settings
 end
 
-function interfaceModule.setupEvents(EventPipeModule)
+function interfaceModule.setupEvents(TaskSignalLibrary)
     assert(not EventPipe, "Events Already Setup")
     
-    EventPipe = EventPipeModule.new({
+    EventPipe = TaskSignalLibrary.new({
         -- incoming data
         'onNewCall',
         'onNewCallback',

@@ -15,7 +15,7 @@
 
 local mainSourceFolder: string, require = ...
 
-local eventPipeLibrary = require("Libraries/EventPipe.lua")
+local taskSignalLibrary = require("Libraries/TaskSignal.lua")
 
 local interface = require("Modules/Interface.lua")
 local backend = require("Modules/Backend.lua")
@@ -226,8 +226,8 @@ end
 
 do -- initialize
 
-    interface.setupEvents(eventPipeLibrary)
-    backend.setupEvents(eventPipeLibrary)
+    interface.setupEvents(taskSignalLibrary)
+    backend.setupEvents(taskSignalLibrary)
 
     -- block event, unnecessary if it gets the list passed directly
     interface.EventPipe:ListenToEvent('onRemoteBlocked', function(remoteID: string, callback: boolean, status: boolean) 
