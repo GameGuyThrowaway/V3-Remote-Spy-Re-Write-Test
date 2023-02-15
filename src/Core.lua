@@ -1,7 +1,7 @@
 --[[
     -- I suggest turning on line wrapping to read my massive single line comments
     -- I should probably add more sanity checks for basic stuff, but I figure most of this stuff should be impossible to break in real world conditions, so the only way it would fail the sanity check is if I wrote the code wrong, in which case might as well error
-    
+
     -- Incoming data should be completely safe because it was passed through a bindable (SynGlobalSignal), and has cyclic + stack overflow + indices fix + thread check
     -- Do I use a SynGlobalSignal or a series of bindables?  Bindables can return, but need to be checked to ensure they aren't being self logged (use a hashmap)
     -- The only way currently to use SynGlobalSignal is through getgamestate().Event, but that will likely want to be used by other scripts, meaning I shouldn't use it
@@ -192,7 +192,7 @@ local function updateReturnValue(returnValueKey: string, returnValue, returnCoun
     returnValuePointerList[returnValueKey] = nil
 
     return callEntry, remoteID
-end 
+end
 
 local function optimizedRepeatCall(remote: Instance, callback: boolean, amount: number, ...)
     local remData = dataList[remote.ClassName]
@@ -235,16 +235,16 @@ do -- initialize
     end
 
     -- block event, unnecessary if it gets the list passed directly
-    interface.EventPipe:ListenToEvent('onRemoteBlocked', function(remoteID: string, callback: boolean, status: boolean) 
+    interface.EventPipe:ListenToEvent('onRemoteBlocked', function(remoteID: string, callback: boolean, status: boolean)
         local list = callback and callbackBlockList or callBlockList
 
         list[remoteID] = status
     end)
 
     -- ignore event, unnecessary if it gets the list passed directly
-    interface.EventPipe:ListenToEvent('onRemoteIgnored', function(remoteID: string, callback: boolean, status: boolean) 
+    interface.EventPipe:ListenToEvent('onRemoteIgnored', function(remoteID: string, callback: boolean, status: boolean)
         local list = callback and callbackIgnoreList or callIgnoreList
-        
+
         list[remoteID] = status
     end)
 
@@ -254,7 +254,7 @@ do -- initialize
     end)
 
     -- interface requests
-    interface.EventPipe:ListenToEvent('generatePseudocode', function(remoteID: string, callback: boolean, callIndex: number, receiving: boolean) 
+    interface.EventPipe:ListenToEvent('generatePseudocode', function(remoteID: string, callback: boolean, callIndex: number, receiving: boolean)
         local list = callback and callbackList or callList
         local remoteInfo = list[remoteID]
         local call = remoteInfo and remoteInfo.Calls[callIndex]
@@ -333,7 +333,7 @@ do -- initialize
         local call = remoteInfo.Calls[callIndex]
 
         amount = amount or 1
-        
+
         optimizedRepeatCall(remote, callback, amount, unpack(call.Args, 1, call.ArgCount))
     end)
     interface.EventPipe:ListenToEvent('clearRemoteCalls', function(remoteID: string, callback: boolean)
@@ -357,29 +357,32 @@ do -- initialize
         clear_table(callbackList)
     end)
 
-    -- backend events 
-    backend.EventPipe:ListenToEvent('onRemoteCall', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callingScript: Instance, callStack) 
+    -- backend events
+    backend.EventPipe:ListenToEvent('onRemoteCall', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callingScript: Instance, callStack)
         if not Settings.Paused then
             local class = remote.ClassName
+            warn("a", Settings[dataList[class].Namecall], Settings.LogPausedTypes, Settings[typeList[class]])
             if (Settings[dataList[class].Namecall] or Settings.LogPausedTypes) and Settings[typeList[class]] then
+                warn("b")
                 local log = logCall(remote, remoteID, returnValueKey, callingScript, callStack, args, argCount)
+                warn("c")
                 interface.EventPipe:Fire('onNewCall', remoteID, log)
             end
         end
     end)
-    backend.EventPipe:ListenToEvent('onRemoteCallback', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callbackCreator: Instance) 
+    backend.EventPipe:ListenToEvent('onRemoteCallback', function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callbackCreator: Instance)
         if Settings.Callbacks and not Settings.Paused and (Settings[dataList[remote.ClassName].Callback] or Settings.LogPausedTypes) then
             local log = logCallback(remote, remoteID, returnValueKey, callbackCreator, args, argCount)
             interface.EventPipe:Fire('onNewCallback', remoteID, log)
         end
     end)
-    backend.EventPipe:ListenToEvent('onRemoteConnection', function(args, argCount: number, remote: Instance, remoteID: string, connectedScripts) 
+    backend.EventPipe:ListenToEvent('onRemoteConnection', function(args, argCount: number, remote: Instance, remoteID: string, connectedScripts)
         if Settings.Callbacks and not Settings.Paused and (Settings[dataList[remote.ClassName].Signal] or Settings.LogPausedTypes) then
             local log = logConnection(remote, remoteID, connectedScripts, args, argCount)
             interface.EventPipe:Fire('onNewConnection', remoteID, log)
         end
     end)
-    backend.EventPipe:ListenToEvent('onReturnValueUpdated', function(returnData, returnCount: number, returnKey: string) 
+    backend.EventPipe:ListenToEvent('onReturnValueUpdated', function(returnData, returnCount: number, returnKey: string)
         local log, remoteID: string = updateReturnValue(returnKey, returnData, returnCount)
         interface.EventPipe:Fire('onReturnValueUpdated', remoteID, log)
     end)

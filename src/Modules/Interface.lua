@@ -9,13 +9,13 @@ function interfaceModule.initiateModule(CallList, CallbackList, CallBlockList, C
     callIgnoreList = CallIgnoreList
     callbackBlockList = CallbackBlockList
     callbackIgnoreList = CallbackIgnoreList
-    
+
     Settings = SettingsTable
 end
 
 function interfaceModule.setupEvents(TaskSignalLibrary)
     assert(not EventPipe, "Events Already Setup")
-    
+
     EventPipe = TaskSignalLibrary.new({
         -- incoming data
         'onNewCall',
@@ -24,9 +24,9 @@ function interfaceModule.setupEvents(TaskSignalLibrary)
         'onReturnValueUpdated',
 
         -- outgoing data
-        'onRemoteBlocked', 
+        'onRemoteBlocked',
         'onRemoteIgnored',
-        'onCallStackLimitChanged', 
+        'onCallStackLimitChanged',
 
         -- core requests
         'generatePseudocode',
@@ -44,14 +44,14 @@ function interfaceModule.setupEvents(TaskSignalLibrary)
             print("New Call:", remoteID, " | ", call.ArgCount)
         end)
         EventPipe:ListenToEvent('onNewCallback', function(remoteID: string, call)
-            print("New Callback: ", remoteID, " | ", call.ArgCount)
+            print("New Callback:", remoteID, " | ", call.ArgCount)
         end)
         EventPipe:ListenToEvent('onNewConnection', function(remoteID: string, call)
-            print("New Connection: ", remoteID, " | ", call.ArgCount)
+            print("New Connection:", remoteID, " | ", call.ArgCount)
         end)
 
         EventPipe:ListenToEvent('onReturnValueUpdated', function(remoteID: string, call)
-            print("New ReturnValue: ", remoteID, " | ", call.ReturnCount)
+            print("New ReturnValue:", remoteID, " | ", call.ReturnCount)
         end)
     end
 

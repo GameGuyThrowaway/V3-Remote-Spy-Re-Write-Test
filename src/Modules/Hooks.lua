@@ -37,8 +37,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             oth_unhook(mt.__newindex, oldHooks.NewIndex)
 
             for _,v in callbackHooks do
-                if v.Instance and v.OriginalFunction then -- might've gced by now
-                    v.Instance[v.CallbackName] = v.OriginalFunction
+                if getcallbackmember(v.Instance, v.CallbackName) == v.ProxyFunction then -- check if our hook is still applied
+                    v.Instance[v.CallbackName] = v.OriginalFunction -- if it is, get rid of it
                 end
             end
 
@@ -353,57 +353,55 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         local remoteID: string = get_debug_id(remote)
         local cloneRemote: RemoteFunction | BindableFunction = cloneref(remote)
 
-        if not callbackHooks[remoteID] then
-            callbackHooks[remoteID] = setmetatable({
-                Instance = cloneRemote,
-                CallbackMethod = callbackMethod,
-                OriginalFunction = newCallback
-            }, {__mode = "v"})
+        local callbackProxy = function(...)
+            if not spyPaused then
+                if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
+                    warn("not ignored")
+                    local argSize: number = select("#", ...)
+                    local data = {...}
+                    local desanitizePaths = partiallySanitizeData(data)
 
-            -- task.spawn cause of OTH limitations
-            task_spawn(function()
-                cloneRemote[callbackMethod] = function(...)
-                    if not spyPaused then
-                        if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, true) then
-                            local argSize: number = select("#", ...)
-                            local data = {...}
-                            local desanitizePaths = partiallySanitizeData(data)
+                    callCount += 1
+                    local returnKey: string = channelKey .. "|" .. callCount
 
-                            callCount += 1
-                            local returnKey: string = channelKey .. "|" .. callCount
+                    local th: thread = coroutine_running()
+                    local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
-                            local th: thread = coroutine_running()
-                            local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
+                    warn('new callback')
+                    task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
+                    task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                    desanitizeData(desanitizePaths)
 
-                            task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCallback", cloneRemote, remoteID, returnKey, typeof(scr) == "Instance" and cloneref(scr))
-                            task_spawn(fire, argChannel, unpack(data, 1, argSize))
-                            desanitizeData(desanitizePaths)
+                    if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
+                        return
+                    else
+                        local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackFunc)(...))
+                        local desanitizeReturnPaths = partiallySanitizeData(returnData)
 
-                            if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
-                                return
-                            else
-                                local returnData, returnDataSize = processReturnValue(coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...))
-                                local desanitizeReturnPaths = partiallySanitizeData(returnData)
+                        task_spawn(fire, dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
+                        task_spawn(fire, argChannel, unpack(returnData, 1, returnDataSize))
+                        desanitizeData(desanitizeReturnPaths)
 
-                                task_spawn(fire, dataChannel, "sendMetadata", "onReturnValueUpdated", returnKey)
-                                task_spawn(fire, argChannel, unpack(returnData, 1, returnDataSize))
-                                desanitizeData(desanitizeReturnPaths)
-
-                                return unpack(returnData, 1, returnDataSize)
-                            end
-                        else
-                            if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
-                                return
-                            end
-                        end
+                        return unpack(returnData, 1, returnDataSize)
                     end
-
-                    return coroutine_wrap(callbackHooks[remoteID].OriginalFunction)(...)
+                else
+                    if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID, true) then
+                        return
+                    end
                 end
-            end)
-        else
-            callbackHooks[remoteID].OriginalFunction = newCallback
+            end
+
+            return coroutine_wrap(callbackFunc)(...)
         end
+
+        callbackHooks[remoteID] = setmetatable({
+            Instance = cloneRemote,
+            CallbackMethod = callbackMethod,
+            ProxyFunction = callbackProxy,
+            OriginalFunction = callbackFunc
+        }, {__mode = "v"})
+
+        oldHooks.NewIndex(remote, callbackMethod, callbackProxy) -- set the callback to the proxy
 
         return true
     end
