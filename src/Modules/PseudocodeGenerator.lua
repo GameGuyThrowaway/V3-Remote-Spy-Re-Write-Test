@@ -698,9 +698,9 @@ function PseudocodeGenerator.generateReceivingCode(remote: Instance, call): stri
     else
         local conName = remData.Signal
         if conName then
-            pseudocode ..= (pathStr .. "." .. conName .. ":Connect(function(")
+            pseudocode = (pathStr .. "." .. conName .. ":Connect(function(")
         else
-            pseudocode ..= (pathStr .. "." .. remData.Callback .. " = function(")
+            pseudocode = (pathStr .. "." .. remData.Callback .. " = function(")
         end
     end
 
