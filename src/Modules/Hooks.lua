@@ -324,6 +324,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return oldFunction
     end
 
+
+    local fire = argChannel.Fire
+    local invoke = cmdChannel.Invoke
     
     local function addCallbackHook(remote: RemoteFunction | BindableFunction, callbackMethod: string, newCallback): boolean
         set_thread_identity(3)
@@ -538,9 +541,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             })
         })
     }
-
-    local fire = argChannel.Fire
-    local invoke = cmdChannel.Invoke
 
     local oldNewIndex
     oldNewIndex = newHookMetamethod(game, "__newindex", newcclosure(function(remote: RemoteFunction | BindableFunction, idx: string, newidx)

@@ -34,13 +34,13 @@ cmdChannel.OnInvoke = function(callType: string, ...)
     return commands[callType](...)
 end
 
-dataChannel.Event:Connect(function(callType: string, ...)
+dataCon = dataChannel.Event:Connect(function(callType: string, ...)
     if callType == "sendMetadata" then
         metadata = {...}
     end
 end)
 
-argChannel.Event:Connect(function(...)
+argCon = argChannel.Event:Connect(function(...)
     assert(metadata, "FATAL ERROR, REPORT IMMEDIATELY")
     local callType = metadata[1]
 
@@ -68,7 +68,7 @@ function backendModule.initiateModule(CallBlockList, CallIgnoreList, CallbackBlo
     callStackLimit = CallStackLimit
     hookCode = HookCode
 
-    connection = syn.on_actor_state_created:Connect(function(actor: Actor)
+    actorCon = syn.on_actor_state_created:Connect(function(actor: Actor)
         handleState(getluastate(actor))
     end)
 
