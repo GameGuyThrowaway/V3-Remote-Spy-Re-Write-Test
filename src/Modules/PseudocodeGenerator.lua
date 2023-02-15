@@ -436,8 +436,10 @@ function PseudocodeGenerator.initiateModule(settings)
     if not clientId then
         task.spawn(function()
             while not clientId do
-                clientId = get_debug_id(Players.LocalPlayer)
-                clientUserId = Players.LocalPlayer.UserId
+                if Players.LocalPlayer then
+                    clientId = get_debug_id(Players.LocalPlayer)
+                    clientUserId = Players.LocalPlayer.UserId
+                end
                 task.wait()
             end
         end)
