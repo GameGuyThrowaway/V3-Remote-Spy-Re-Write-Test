@@ -271,14 +271,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         offset += 1 -- +1 to account for this function
 
         local realCallStack = get_call_stack(thread)
-        local stackEnd: number = #realCallStack
-        local stackSize: number = (stackEnd-1) -- -1 cause syn call is the first index
-        local iterStart: number = 2 -- base 1, +1 because the first call is the syn hook
+        local stackSize: number = (#realCallStack-1) -- -1 cause syn call is the last index
+        local iterStart: number = 1 -- base 1=
         if stackSize > callStackLimit then
-            iterStart = stackSize - callStackLimit + 1 -- base 1, also not +2 because the first call isn't included here, and therefore doesn't need to be accounted for
+            iterStart = stackSize - callStackLimit + 1 -- base 1
         end
 
-        for i = iterStart, stackEnd do
+        for i = iterStart, stackSize do
             local v = realCallStack[i]
 
             local funcInfo = getinfo(v.func)
