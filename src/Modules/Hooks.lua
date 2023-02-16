@@ -470,21 +470,21 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local filters = {
         Namecall = AnyFilter.new({
-            AllFilter.new({
+            --[[AllFilter.new({
                 InstanceTypeFilter.new(1, "RemoteEvent"),
                 AnyFilter.new({
                     NamecallFilter.new("FireServer"),
                     NamecallFilter.new("fireServer")
                 })
-            }),
-            --[[AllFilter.new({
+            }),]]
+            AllFilter.new({
                 InstanceTypeFilter.new(1, "RemoteFunction"),
                 AnyFilter.new({
                     NamecallFilter.new("InvokeServer"),
                     NamecallFilter.new("invokeServer")
                 })
-            }),]]
-            AllFilter.new({
+            }),
+            --[[AllFilter.new({
                 InstanceTypeFilter.new(1, "BindableEvent"),
                 NotFilter.new(ArgumentFilter.new(1, argChannel)),
                 NotFilter.new(ArgumentFilter.new(1, dataChannel)),
@@ -493,8 +493,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("Fire"),
                     NamecallFilter.new("fire")
                 })
-            }),
-            --[[AllFilter.new({
+            }),]]
+            AllFilter.new({
                 InstanceTypeFilter.new(1, "BindableFunction"),
                 NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
                 NotFilter.new(ArgumentFilter.new(1, callbackReturnSpoof)),
@@ -503,7 +503,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("Invoke"),
                     NamecallFilter.new("invoke")
                 })
-            })]]
+            })
         }),
 
         NewIndex = AllFilter.new({
@@ -590,7 +590,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     end), filters.Index)
     oldHooks.Index = oldIndex
 
-    warn("loaded3")
+    warn("loaded4")
 
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
