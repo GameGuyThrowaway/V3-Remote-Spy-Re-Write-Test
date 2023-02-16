@@ -429,7 +429,10 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                     if conCount == -1 then
                         conCount = #getconnections(signal)-2
-                        print(conCount)
+                        if conCount < 1 then -- impossible (unless core signal or smthn)
+                            conCount = -1
+                            return
+                        end
                     end
 
                     if not invoke(cmdChannel, "checkIgnored", remoteID, true) then
@@ -453,7 +456,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                             fire(argChannel, unpack(data, 1, argSize))
                             desanitizeData(desanitizePaths)
                             table_clear(scriptCache)
-                            conCount = 0
+                            conCount = -1
                             iterNumber = 0
                         end
                     elseif (iterNumber == conCount) then -- reset for next signal
