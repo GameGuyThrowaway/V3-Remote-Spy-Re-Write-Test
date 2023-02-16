@@ -15,7 +15,11 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local trampoline_call = syn.trampoline_call
 
     local spyPaused: boolean, callStackLimit: number, channelKey: number, cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = ...
-    local callbackReturnSpoof: BindableFunction = Instance.new("BindableFunction") -- Long story, just ask me if you want to find out why this is here - GameGuy#5286
+    local callbackReturnSpoof: BindableFunction, safeFunctionTest: BindableFunction, safeEventTest: BindableEvent = Instance.new("BindableFunction"), Instance.new("BindableFunction"), Instance.new("BindableEvent") -- Long story, just ask me if you want to find out why this is here - GameGuy#5286
+
+    safeFunctionTest.OnInvoke = function()
+        return
+    end
 
     local callCount: number = 0
     local oldHooks, callbackHooks, signalHooks = {}, {}, {}
@@ -54,7 +58,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         updateCallStackLimit = function(data: number)
             callStackLimit = data
         end,
-        updatePauseStatus = function(status: boolean)
+        updateSpyPauseStatus = function(status: boolean)
             spyPaused = status
         end,
         updateRemoteTypePaused = function(remoteType: string, callback: boolean, status: boolean)
@@ -488,6 +492,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 InstanceTypeFilter.new(1, "BindableEvent"),
                 NotFilter.new(ArgumentFilter.new(1, argChannel)),
                 NotFilter.new(ArgumentFilter.new(1, dataChannel)),
+                NotFilter.new(ArgumentFilter.new(1, safeEventTest)),
 
                 AnyFilter.new({
                     NamecallFilter.new("Fire"),
@@ -498,6 +503,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 InstanceTypeFilter.new(1, "BindableFunction"),
                 NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
                 NotFilter.new(ArgumentFilter.new(1, callbackReturnSpoof)),
+                NotFilter.new(ArgumentFilter.new(1, safeFunctionTest)),
 
                 AnyFilter.new({
                     NamecallFilter.new("Invoke"),
@@ -524,6 +530,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     InstanceTypeFilter.new(1, "BindableFunction"),
                     NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
                     NotFilter.new(ArgumentFilter.new(1, callbackReturnSpoof)),
+                    NotFilter.new(ArgumentFilter.new(1, safeFunctionTest)),
 
                     AnyFilter.new({
                         ArgumentFilter.new(2, "OnInvoke"),
@@ -545,6 +552,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 InstanceTypeFilter.new(1, "BindableEvent"),
                 NotFilter.new(ArgumentFilter.new(1, argChannel)),
                 NotFilter.new(ArgumentFilter.new(1, dataChannel)),
+                NotFilter.new(ArgumentFilter.new(1, safeEventTest)),
 
                 AnyFilter.new({
                     ArgumentFilter.new(2, "Event"),
@@ -665,6 +673,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         if not spyPaused then
             warn("fs")
+            local t = tick()
             local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: RemoteEvent = cloneref(remote)
@@ -688,6 +697,11 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                     return
                 end
+            end
+            warn(tick() - t)
+            t = tick()
+            if not pcall(fire, safeEventTest, ...) then
+                print(tick() - t)
             end
         end
 
