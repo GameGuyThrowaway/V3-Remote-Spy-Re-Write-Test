@@ -15,6 +15,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local trampoline_call = syn.trampoline_call
 
     local spyPaused: boolean, callStackLimit: number, channelKey: number, cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = ...
+    local callbackReturnSpoof: BindableFunction = Instance.new("BindableFunction") -- ask me if you want to know why
 
     local callCount: number = 0
     local oldHooks, callbackHooks, signalHooks = {}, {}, {}
