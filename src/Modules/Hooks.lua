@@ -429,6 +429,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                     if conCount == -1 then
                         conCount = #getconnections(signal)-2
+                        print(conCount)
                     end
 
                     if not invoke(cmdChannel, "checkIgnored", remoteID, true) then
