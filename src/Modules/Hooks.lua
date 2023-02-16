@@ -65,7 +65,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             remoteType[remoteType][callback and "CallbackEnabled" or "CallEnabled"] = status
         end
     }
-    connection = dataChannel.Event:Connect(function(commandName: string, data: any)
+    connection = dataChannel.Event:Connect(function(commandName: string, data)
         local commandFunction = commands[commandName]
 
         if commandFunction then -- same channel as used in Backend, no overlapping commands, so this works as a check
@@ -588,7 +588,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return oldNewIndex(remote, idx, callbackProxy)
     end), filters.NewIndex)
     oldHooks.NewIndex = oldNewIndex
---[[
+
     local oldIndex
     oldIndex = newHookMetamethod(game, "__index", newcclosure(function(remote: RemoteEvent | BindableEvent, idx: string)
         local newSignal = oldIndex(remote, idx)
@@ -596,8 +596,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         return newSignal
     end), filters.Index)
-    oldHooks.Index = oldIndex]]
---[[
+    oldHooks.Index = oldIndex
+
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
 
@@ -665,7 +665,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         return oldNamecall(remote, ...)
     end), filters.Namecall)
-    oldHooks.Namecall = oldNamecall]]
+    oldHooks.Namecall = oldNamecall
 
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)

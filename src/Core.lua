@@ -4,6 +4,7 @@
 
     -- Need to make interface compatible
     -- Add support for pausing types in the backend?  It'd help with performance.
+    -- NewIndex/Index hooks aren't good on performance (in one specificly tested game)
     -- Add an actual interface
 ]]
 
