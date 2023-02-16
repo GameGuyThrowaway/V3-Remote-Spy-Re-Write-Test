@@ -592,6 +592,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
+        set_thread_identity(3)
+
         if not spyPaused then
             local argSize: number = select("#", ...)
             if argSize < 7996 then
@@ -657,6 +659,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
+        set_thread_identity(3)
+
         if not spyPaused then
             local argSize: number = select("#", ...)
             if argSize < 7996 then
@@ -690,6 +694,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldFire
     oldFire = filteredOth(Instance.new("BindableEvent").Fire, newcclosure(function(remote: BindableEvent, ...: any)
+        set_thread_identity(3)
+
         if not spyPaused then
             local argSize: number = select("#", ...)
             if argSize < 7996 then
@@ -723,6 +729,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldInvokeServer
     oldInvokeServer = filteredOth(Instance.new("RemoteFunction").InvokeServer, newcclosure(function(remote: RemoteFunction, ...: any)
+        set_thread_identity(3)
+
         if not spyPaused then
             local argSize: number = select("#", ...)
             if argSize < 7996 then
@@ -774,6 +782,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldInvoke
     oldInvoke = filteredOth(Instance.new("BindableFunction").Invoke, newcclosure(function(remote: BindableFunction, ...: any)
+        set_thread_identity(3)
+
         if not spyPaused then
             local argSize: number = select("#", ...)
             if argSize < 7996 then
