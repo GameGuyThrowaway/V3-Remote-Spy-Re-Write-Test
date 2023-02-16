@@ -232,6 +232,10 @@ do -- initialize
         _G.destroySpy = nil
     end
 
+    _G.pauseSpy = function(status: boolean)
+        backend.EventPipe:Fire("spyPaused", status)
+    end
+
     -- block event, unnecessary if it gets the list passed directly
     interface.EventPipe:ListenToEvent("onRemoteBlocked", function(remoteID: string, callback: boolean, status: boolean)
         local list = callback and callbackBlockList or callBlockList
