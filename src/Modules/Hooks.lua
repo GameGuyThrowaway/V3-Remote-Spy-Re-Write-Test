@@ -458,7 +458,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         end
                     elseif (iterNumber == conCount) then -- reset for next signal
                         table_clear(scriptCache)
-                        conCount = 0
+                        conCount = -1
                         iterNumber = 0
                     end
                 end
