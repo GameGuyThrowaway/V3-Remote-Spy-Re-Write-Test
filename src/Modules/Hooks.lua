@@ -477,13 +477,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("fireServer")
                 })
             }),
-            AllFilter.new({
+            --[[AllFilter.new({
                 InstanceTypeFilter.new(1, "RemoteFunction"),
                 AnyFilter.new({
                     NamecallFilter.new("InvokeServer"),
                     NamecallFilter.new("invokeServer")
                 })
-            }),
+            }),]]
             AllFilter.new({
                 InstanceTypeFilter.new(1, "BindableEvent"),
                 NotFilter.new(ArgumentFilter.new(1, argChannel)),
@@ -494,7 +494,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("fire")
                 })
             }),
-            AllFilter.new({
+            --[[AllFilter.new({
                 InstanceTypeFilter.new(1, "BindableFunction"),
                 NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
                 NotFilter.new(ArgumentFilter.new(1, callbackReturnSpoof)),
@@ -503,7 +503,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("Invoke"),
                     NamecallFilter.new("invoke")
                 })
-            })
+            })]]
         }),
 
         NewIndex = AllFilter.new({
@@ -590,8 +590,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     end), filters.Index)
     oldHooks.Index = oldIndex
 
-    warn("loaded2")
---[[
+    warn("loaded3")
+
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
         set_thread_identity(3)
@@ -657,7 +657,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return oldNamecall(remote, ...)
     end), filters.Namecall)
     oldHooks.Namecall = oldNamecall
-]]
+
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
         set_thread_identity(3)
