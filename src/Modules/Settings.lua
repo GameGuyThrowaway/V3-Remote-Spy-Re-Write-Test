@@ -11,7 +11,7 @@ local defaultSettings = {
 
     OnClientEvent = false,
     OnClientInvoke = false,
-    OnEvent = false,
+    Event = false,
     OnInvoke = false,
 
     Callbacks = false,

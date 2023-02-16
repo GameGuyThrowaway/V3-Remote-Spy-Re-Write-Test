@@ -434,7 +434,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         print(conCount)
                         if conCount < 1 then -- impossible (unless core signal or smthn)
                             conCount = -1
-                            return
+                            return true, ...
                         end
                     end
 
