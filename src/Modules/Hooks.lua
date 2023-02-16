@@ -656,7 +656,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     end), filters.Namecall)
     oldHooks.Namecall = oldNamecall
 
-
+--[[
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
         set_thread_identity(3)
@@ -831,5 +831,5 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         return oldInvoke(remote, ...)
     end), filters.BindableFunction)
-    oldHooks.Invoke = oldInvoke
+    oldHooks.Invoke = oldInvoke]]
 end
