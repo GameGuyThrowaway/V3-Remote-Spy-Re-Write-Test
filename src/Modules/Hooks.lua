@@ -577,7 +577,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         RemoteFunction = InstanceTypeFilter.new(1, "RemoteFunction")
     }
-
+--[[
     local oldNewIndex
     oldNewIndex = newHookMetamethod(game, "__newindex", newcclosure(function(remote: RemoteFunction | BindableFunction, idx: string, newidx)
         local callbackProxy = addCallbackHook(cloneref(remote), idx, newidx)
@@ -596,15 +596,14 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         return newSignal
     end), filters.Index)
-    oldHooks.Index = oldIndex
+    oldHooks.Index = oldIndex]]
 
-    warn("loaded1")
---[[
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
-        set_thread_identity(3)
 
         if not spyPaused then
+            local t = tick()
+            set_thread_identity(3)
             local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction = cloneref(remote)
@@ -661,19 +660,19 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
             end
+            warn("nmc", tick() - t)
         end
 
         return oldNamecall(remote, ...)
     end), filters.Namecall)
-    oldHooks.Namecall = oldNamecall]]
+    oldHooks.Namecall = oldNamecall
 
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
-        set_thread_identity(3)
 
         if not spyPaused then
-            warn("fs")
             local t = tick()
+            set_thread_identity(3)
             local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: RemoteEvent = cloneref(remote)
@@ -698,11 +697,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     return
                 end
             end
-            warn(tick() - t)
-            t = tick()
-            if not pcall(fire, safeEventTest, ...) then
-                print(tick() - t)
-            end
+            warn("fs", tick() - t)
         end
 
         return oldFireServer(remote, ...)
@@ -711,10 +706,10 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldFire
     oldFire = filteredOth(Instance.new("BindableEvent").Fire, newcclosure(function(remote: BindableEvent, ...: any)
-        set_thread_identity(3)
 
         if not spyPaused then
-            warn("f")
+            local t = tick()
+            set_thread_identity(3)
             local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: BindableEvent = cloneref(remote)
@@ -739,6 +734,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     return
                 end
             end
+            warn("f", tick() - t)
         end
 
         return oldFire(remote, ...)
@@ -747,10 +743,10 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldInvokeServer
     oldInvokeServer = filteredOth(Instance.new("RemoteFunction").InvokeServer, newcclosure(function(remote: RemoteFunction, ...: any)
-        set_thread_identity(3)
 
         if not spyPaused then
-            warn("is")
+            local t = tick()
+            set_thread_identity(3)
             local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: RemoteFunction = cloneref(remote)
@@ -793,6 +789,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
             end
+            warn("is", tick() - t)
         end
 
         return oldInvokeServer(remote, ...)
@@ -801,10 +798,10 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local oldInvoke
     oldInvoke = filteredOth(Instance.new("BindableFunction").Invoke, newcclosure(function(remote: BindableFunction, ...: any)
-        set_thread_identity(3)
 
         if not spyPaused then
-            warn("i")
+            local t = tick()
+            set_thread_identity(3)
             local argSize: number = select("#", ...)
             if argSize < 7996 then
                 local cloneRemote: BindableEvent = cloneref(remote)
@@ -847,6 +844,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     end
                 end
             end
+            warn("i", tick() - t)
         end
 
         return oldInvoke(remote, ...)
