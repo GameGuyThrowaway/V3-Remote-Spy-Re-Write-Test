@@ -21,6 +21,10 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldHooks, callbackHooks, signalHooks = {}, {}, {}
     local connection: RBXScriptConnection
 
+    local function checkparallel()
+        return false
+    end
+
 
     local commands = {
         selfDestruct = function()
@@ -120,23 +124,38 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     }
 
     local classDict = {
-        FireServer = "RemoteEvent",
-        fireServer = "RemoteEvent",
-        InvokeServer = "RemoteFunction",
-        invokeServer = "RemoteFunction",
-        Fire = "BindableEvent",
-        fire = "BindableEvent",
-        Invoke = "BindableFunction",
-        invoke = "BindableFunction",
-
-        OnClientEvent = "RemoteEvent",
-        onClientEvent = "RemoteEvent",
-        OnClientInvoke = "RemoteFunction",
-        onClientInvoke = "RemoteFunction",
-        Event = "BindableEvent",
-        event = "BindableEvent",
-        OnInvoke = "BindableFunction",
-        onInvoke = "BindableFunction"
+        FireServer = {
+            Type = "Event",
+            IsRemote = true
+        },
+        fireServer = {
+            Type = "Event",
+            IsRemote = true
+        },
+        InvokeServer = {
+            Type = "Function",
+            IsRemote = true
+        },
+        invokeServer = {
+            Type = "Function",
+            IsRemote = true
+        },
+        Fire = {
+            Type = "Event",
+            IsRemote = false
+        },
+        fire = {
+            Type = "Event",
+            IsRemote = false
+        },
+        Invoke = {
+            Type = "Function",
+            IsRemote = false
+        },
+        invoke = {
+            Type = "Function",
+            IsRemote = false
+        }
     }
 
     local thread, stack -- used in sanitizeData, globalized so it stays during recursive calls
@@ -606,7 +625,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
 
-        if not spyPaused then
+        local class = classDict[getnamecallmethod()]
+
+        if not spyPaused and not (class.IsRemote and checkparallel()) then
             local t = tick()
             set_thread_identity(3)
             local argSize: number = select("#", ...)
@@ -619,9 +640,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
                     if success then
-                        local className: string = classDict[getnamecallmethod()]
 
-                        if (className == "RemoteFunction" or className == "BindableFunction") then
+                        if class.Type == "Function" then -- remotes can't run in parallel
                             local th: thread = oth_get_original_thread()
                             local scr: Instance = issynapsethread(th) and "Synapse" or getcallingscript()
 
@@ -675,7 +695,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
 
-        if not spyPaused then
+        if not spyPaused and not checkparallel() then
             local t = tick()
             set_thread_identity(3)
             local argSize: number = select("#", ...)
@@ -749,7 +769,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldInvokeServer
     oldInvokeServer = filteredOth(Instance.new("RemoteFunction").InvokeServer, newcclosure(function(remote: RemoteFunction, ...: any)
 
-        if not spyPaused then
+        if not spyPaused and not checkparallel() then
             local t = tick()
             set_thread_identity(3)
             local argSize: number = select("#", ...)
