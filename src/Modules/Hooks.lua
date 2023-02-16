@@ -15,11 +15,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local trampoline_call = syn.trampoline_call
 
     local spyPaused: boolean, callStackLimit: number, channelKey: number, cmdChannel: BindableFunction, argChannel: BindableEvent, dataChannel: BindableEvent = ...
-    local callbackReturnSpoof: BindableFunction, safeFunctionTest: BindableFunction, safeEventTest: BindableEvent = Instance.new("BindableFunction"), Instance.new("BindableFunction"), Instance.new("BindableEvent") -- Long story, just ask me if you want to find out why this is here - GameGuy#5286
-
-    safeFunctionTest.OnInvoke = function()
-        return
-    end
 
     local callCount: number = 0
     local oldHooks, callbackHooks, signalHooks = {}, {}, {}
@@ -361,6 +356,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         local callbackProxy = function(...)
             if not spyPaused then
+                local t = tick()
+
                 if not invoke(cmdChannel, "checkIgnored", remoteID, true) then
                     local argSize: number = select("#", ...)
                     local data = {...}
@@ -389,11 +386,11 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                         return unpack(returnData, 1, returnDataSize)
                     end
-                else
-                    if invoke(cmdChannel, "checkBlocked", remoteID, true) then
-                        return
-                    end
+                elseif invoke(cmdChannel, "checkBlocked", remoteID, true) then
+                    return
                 end
+
+                warn("cb", tick() - t)
             end
 
             callbackReturnSpoof.OnInvoke = callbackFunc
@@ -425,6 +422,8 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
             hooksignal(signal, function(info, ...)
                 if not spyPaused then
+                    local t = tick()
+
                     iterNumber += 1
 
                     if conCount == -1 then
@@ -464,10 +463,11 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                         conCount = -1
                         iterNumber = 0
                     end
-                end
 
-                if invoke(cmdChannel, "checkBlocked", remoteID, true) then
-                    return false
+                    if invoke(cmdChannel, "checkBlocked", remoteID, true) then
+                        return false
+                    end
+                    warn("sig", tick() - t)
                 end
 
                 return true, ...
