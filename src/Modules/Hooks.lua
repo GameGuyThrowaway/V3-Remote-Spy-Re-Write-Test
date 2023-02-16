@@ -470,13 +470,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
     local filters = {
         Namecall = AnyFilter.new({
-            --[[AllFilter.new({
+            AllFilter.new({
                 InstanceTypeFilter.new(1, "RemoteEvent"),
                 AnyFilter.new({
                     NamecallFilter.new("FireServer"),
                     NamecallFilter.new("fireServer")
                 })
-            }),]]
+            }),
             AllFilter.new({
                 InstanceTypeFilter.new(1, "RemoteFunction"),
                 AnyFilter.new({
@@ -484,7 +484,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("invokeServer")
                 })
             }),
-            --[[AllFilter.new({
+            AllFilter.new({
                 InstanceTypeFilter.new(1, "BindableEvent"),
                 NotFilter.new(ArgumentFilter.new(1, argChannel)),
                 NotFilter.new(ArgumentFilter.new(1, dataChannel)),
@@ -493,7 +493,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     NamecallFilter.new("Fire"),
                     NamecallFilter.new("fire")
                 })
-            }),]]
+            }),
             AllFilter.new({
                 InstanceTypeFilter.new(1, "BindableFunction"),
                 NotFilter.new(ArgumentFilter.new(1, cmdChannel)),
@@ -590,8 +590,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     end), filters.Index)
     oldHooks.Index = oldIndex
 
-    warn("loaded4")
-
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
         set_thread_identity(3)
@@ -638,6 +636,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
                             task_spawn(fire, dataChannel, "sendMetadata", "onRemoteCall", cloneRemote, remoteID, nil, typeof(scr) == "Instance" and cloneref(scr), createCallStack(th, 0))
                             task_spawn(fire, argChannel, unpack(data, 1, argSize))
+                            desanitizeData(desanitizePaths)
 
                             if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                                 return
