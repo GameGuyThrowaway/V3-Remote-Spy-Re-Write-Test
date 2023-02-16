@@ -87,7 +87,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             first = true
         end
 
-        for i,v in next, data do
+        for i,v in data do
             local valueType = typeof(v)
 
             if valueType == "Instance" then -- cloneref all instances so that weak table detections are fully thwarted (all other userdatas are handled by this being sent through a bindable)
@@ -105,7 +105,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     table_insert(deSanitizePaths[data].mods, { i, i, v })
                 end
             elseif valueType == "table" then -- recursive checks
-                partiallySanitizeData(data, deSanitizePaths)
+                partiallySanitizeData(v, deSanitizePaths)
             end
         end
 
