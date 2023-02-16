@@ -569,7 +569,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         RemoteFunction = InstanceTypeFilter.new(1, "RemoteFunction")
     }
---[[
+
     local oldNewIndex
     oldNewIndex = newHookMetamethod(game, "__newindex", newcclosure(function(remote: RemoteFunction | BindableFunction, idx: string, newidx)
         local callbackProxy = addCallbackHook(cloneref(remote), idx, newidx)
@@ -589,10 +589,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return newSignal
     end), filters.Index)
     oldHooks.Index = oldIndex
-]]
 
-    warn("loaded")
-
+    warn("loaded2")
+--[[
     local oldNamecall
     oldNamecall = newHookMetamethod(game, "__namecall", newcclosure(function(remote: RemoteEvent | RemoteFunction | BindableEvent | BindableFunction, ...: any)
         set_thread_identity(3)
@@ -658,8 +657,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return oldNamecall(remote, ...)
     end), filters.Namecall)
     oldHooks.Namecall = oldNamecall
-
---[[
+]]
     local oldFireServer
     oldFireServer = filteredOth(Instance.new("RemoteEvent").FireServer, newcclosure(function(remote: RemoteEvent, ...: any)
         set_thread_identity(3)
@@ -834,5 +832,5 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
 
         return oldInvoke(remote, ...)
     end), filters.BindableFunction)
-    oldHooks.Invoke = oldInvoke]]
+    oldHooks.Invoke = oldInvoke
 end
