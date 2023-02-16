@@ -411,6 +411,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     end
 
     local function addSignalHook(remote: RemoteEvent | BindableEvent, connectionMethod: string, signal: RBXScriptSignal)
+        warn("New Signal: ", remote:GetFullName())
         set_thread_identity(3)
 
         if not issignalhooked(signal) then
@@ -424,11 +425,13 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             table_insert(signalHooks, signal)
 
             hooksignal(signal, function(info, ...)
+                warn("Called: ", remote:GetFullName(), iterNumber)
                 if not spyPaused then
                     iterNumber += 1
 
                     if conCount == -1 then
                         conCount = #getconnections(signal)-2
+                        print(conCount)
                         if conCount < 1 then -- impossible (unless core signal or smthn)
                             conCount = -1
                             return
