@@ -1,4 +1,4 @@
-local mainSourceFolder = "https://github.com/GameGuyThrowaway/V3-Remote-Spy-Re-Write-Test/main/src/"
+local mainSourceFolder = "https://raw.githubusercontent.com/GameGuyThrowaway/V3-Remote-Spy-Re-Write-Test/main/src/"
 local coreModule = mainSourceFolder .. "Core.lua"
 
 local loadedModules = {} -- used for caching loaded modules so that a module can be required twice and the same table will return both times

@@ -315,6 +315,9 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return newCallStack
     end
 
+    local blockList = {}
+    local ignoreList = { [game.ReplicatedFirst.RemoteEvent:GetDebugId()] = true }
+
     local function processReturnValue(...)
         return {...}, select("#", ...)
     end
@@ -707,7 +710,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 local cloneRemote: RemoteEvent = cloneref(remote)
                 local remoteID: string = get_debug_id(cloneRemote)
 
-                if not coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
+                if not ignoreList[remoteID] then --coroutine_wrap(invoke)(cmdChannel, "checkIgnored", remoteID, false) then
                     local data = {...}
                     local success: boolean, desanitizePaths = sanitizeData(data, true, -1)
 
@@ -722,7 +725,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                     desanitizeData(desanitizePaths)
                 end
 
-                if coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
+                if blockList[remoteID] then--coroutine_wrap(invoke)(cmdChannel, "checkBlocked", remoteID) then
                     return
                 end
             end

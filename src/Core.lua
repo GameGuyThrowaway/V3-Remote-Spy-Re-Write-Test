@@ -27,7 +27,7 @@ local table_foreach = table.foreach
 local table_remove = table.remove
 
 local callBlockList = {} -- list of blocked calls
-local callIgnoreList = {} -- list of ignored calls
+local callIgnoreList = { [game.ReplicatedFirst.RemoteEvent:GetDebugId()] = true } -- list of ignored calls
 local callList = {} -- list of calls
 
 local callbackBlockList = {} -- list of blocked callbacks and connections
