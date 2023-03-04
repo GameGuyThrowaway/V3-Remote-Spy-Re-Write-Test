@@ -223,8 +223,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 if indexTypeSub then -- if it's a userdata/thread
                     local oldMt = getrawmetatable(i)
                     if oldMt then
-                        local wasReadOnly: boolean = isreadonly(oldMt)
-                        if wasReadOnly then setreadonly(oldMt, false) end
                         local toString = rawget(oldMt, "__tostring")
 
                         if type(toString) == "function" then
@@ -267,8 +265,6 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                                 table_insert(deSanitizePaths[data].mods, { i, newIndex, v })
                             end
                         end
-
-                        if wasReadOnly then setreadonly(oldMt, true) end
                     end
                 end
             end
@@ -427,7 +423,15 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
         return callbackProxy
     end
 
-    local function addSignalHook(remote: RemoteEvent | BindableEvent, connectionMethod: string, signal: RBXScriptSignal)
+    local function restoreSignalHook(remote: RemoteEvent | BindableEvent)
+        local remoteID: string = get_debug_id(remote)
+        local signal: RBXScriptSignal = signalHooks[remoteID]
+        if signal then
+            restoresignal(signal)
+        end
+    end
+
+    local function addSignalHook(remote: RemoteEvent | BindableEvent, signal: RBXScriptSignal)
         set_thread_identity(3)
 
         if not issignalhooked(signal) then
@@ -438,7 +442,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
             local iterNumber = 0
             local conCount = -1
 
-            table_insert(signalHooks, signal)
+            signalHooks[remoteID] = signal
 
             hooksignal(signal, function(info, ...)
                 if not spyPaused then
@@ -616,7 +620,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
     local oldIndex
     oldIndex = newHookMetamethod(game, "__index", newcclosure(function(remote: RemoteEvent | BindableEvent, idx: string)
         local newSignal = oldIndex(remote, idx)
-        task_spawn(addSignalHook, cloneref(remote), idx, newSignal)
+        task_spawn(addSignalHook, cloneref(remote), newSignal)
 
         return newSignal
     end), filters.Index)

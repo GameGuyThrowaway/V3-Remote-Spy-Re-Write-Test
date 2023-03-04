@@ -19,7 +19,6 @@ local defaultSettings = {
     Remotes = true,
 
     CallStackSizeLimit = 10,
-    LogPausedTypes = false,
     CacheLimit = true,
     MaxCallAmount = 1000,
     Paused = false,

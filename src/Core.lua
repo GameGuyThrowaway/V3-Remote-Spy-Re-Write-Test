@@ -364,20 +364,20 @@ do -- initialize
     backend.EventPipe:ListenToEvent("onRemoteCall", function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callingScript: Instance, callStack)
         if not Settings.Paused then
             local class = remote.ClassName
-            if (Settings[dataList[class].Namecall] or Settings.LogPausedTypes) and Settings[typeList[class]] then
+            if Settings[dataList[class].Namecall] and Settings[typeList[class]] then
                 local log = logCall(remote, remoteID, returnValueKey, callingScript, callStack, args, argCount)
                 interface.EventPipe:Fire("onNewCall", remoteID, log)
             end
         end
     end)
     backend.EventPipe:ListenToEvent("onRemoteCallback", function(args, argCount: number, remote: Instance, remoteID: string, returnValueKey: string, callbackCreator: Instance)
-        if Settings.Callbacks and not Settings.Paused and (Settings[dataList[remote.ClassName].Callback] or Settings.LogPausedTypes) then
+        if Settings.Callbacks and not Settings.Paused and Settings[dataList[remote.ClassName].Callback] then
             local log = logCallback(remote, remoteID, returnValueKey, callbackCreator, args, argCount)
             interface.EventPipe:Fire("onNewCallback", remoteID, log)
         end
     end)
     backend.EventPipe:ListenToEvent("onRemoteConnection", function(args, argCount: number, remote: Instance, remoteID: string, connectedScripts)
-        if Settings.Callbacks and not Settings.Paused and (Settings[dataList[remote.ClassName].Signal] or Settings.LogPausedTypes) then
+        if Settings.Callbacks and not Settings.Paused and Settings[dataList[remote.ClassName].Signal] then
             local log = logConnection(remote, remoteID, connectedScripts, args, argCount)
             interface.EventPipe:Fire("onNewConnection", remoteID, log)
         end

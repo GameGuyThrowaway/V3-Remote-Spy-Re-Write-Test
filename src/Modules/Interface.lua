@@ -39,6 +39,14 @@ function interfaceModule.setupEvents(TaskSignalLibrary)
         "clearRemoteCalls"
     })
 
+    _G.blockRem = function(remoteID: string, callback: boolean, status: boolean)
+        EventPipe:Fire("onRemoteBlocked", remoteID, callback, status)
+    end
+
+    _G.ignoreRem = function(remoteID: string, callback: boolean, status: boolean)
+        EventPipe:Fire("onRemoteIgnored", remoteID, callback, status)
+    end
+
     do -- initialize incoming requests
         EventPipe:ListenToEvent("onNewCall", function(remoteID: string, call)
             print("New Call:", remoteID, " | ", call.ArgCount)
