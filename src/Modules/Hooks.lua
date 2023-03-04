@@ -507,8 +507,7 @@ if not _G.remoteSpyHookedState then -- ensuring hooks are never ran twice
                 AnyFilter.new({
                     NamecallFilter.new("FireServer"),
                     NamecallFilter.new("fireServer")
-                }),
-                NotFilter.new(ArgumentFilter.new(1, game.ReplicatedFirst.RemoteEvent))
+                })
             }),
             AllFilter.new({
                 InstanceTypeFilter.new(1, "RemoteFunction"),
